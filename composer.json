@@ -1,0 +1,60 @@
+{
+    "name": "mwguerra/filemanager",
+    "description": "A full-featured file manager package for Laravel and Filament v4 with dual operating modes, drag-and-drop uploads, S3/MinIO support, and comprehensive security features.",
+    "keywords": [
+        "laravel",
+        "filament",
+        "file-manager",
+        "storage",
+        "s3",
+        "minio",
+        "upload",
+        "media-library"
+    ],
+    "homepage": "https://github.com/mwguerra/filemanager",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Marcelo W. Guerra",
+            "email": "contact@mwguerra.com",
+            "homepage": "https://mwguerra.com",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/mwguerra/filemanager/issues",
+        "source": "https://github.com/mwguerra/filemanager"
+    },
+    "require": {
+        "php": "^8.2",
+        "filament/filament": "^4.0",
+        "illuminate/contracts": "^11.0|^12.0",
+        "spatie/laravel-package-tools": "^1.16"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0",
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "MWGuerra\\FileManager\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MWGuerra\\FileManager\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "MWGuerra\\FileManager\\FileManagerServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
