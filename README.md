@@ -35,6 +35,22 @@ Publish configuration:
 php artisan vendor:publish --tag=filemanager-config
 ```
 
+Run migrations to create the `file_system_items` table:
+
+```bash
+php artisan migrate
+```
+
+This table is required for the File Manager (Database Mode) to track uploaded files and folders.
+
+**Already have files in storage?** If you have existing files in your filesystem that you want to import into the File Manager, run:
+
+```bash
+php artisan filemanager:rebuild
+```
+
+This will scan your storage and create database records for all existing files.
+
 Register the plugin in your Panel Provider:
 
 ```php
