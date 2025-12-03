@@ -97,24 +97,20 @@
                     <x-filament::dropdown.list>
                         <x-filament::dropdown.list.item
                             icon="heroicon-o-arrow-right-circle"
-                            x-on:click.stop="close"
-                            wire:click="openMoveDialog('{{ $itemId }}')"
+                            x-on:click.stop="close(); $wire.openMoveDialog({{ json_encode($itemId) }})"
                         >
                             Move
                         </x-filament::dropdown.list.item>
                         <x-filament::dropdown.list.item
                             icon="heroicon-o-pencil"
-                            x-on:click.stop="close"
-                            wire:click="openRenameDialog('{{ $itemId }}')"
+                            x-on:click.stop="close(); $wire.openRenameDialog({{ json_encode($itemId) }})"
                         >
                             Rename
                         </x-filament::dropdown.list.item>
                         <x-filament::dropdown.list.item
                             icon="heroicon-o-trash"
                             color="danger"
-                            x-on:click.stop="close"
-                            wire:click="deleteItem('{{ $itemId }}')"
-                            wire:confirm="Are you sure you want to delete this item?"
+                            x-on:click.stop="close(); if(confirm('Are you sure you want to delete this item?')) $wire.deleteItem({{ json_encode($itemId) }})"
                         >
                             Delete
                         </x-filament::dropdown.list.item>

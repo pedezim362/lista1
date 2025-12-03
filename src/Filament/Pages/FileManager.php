@@ -72,6 +72,7 @@ class FileManager extends Page
     public string $newFolderName = '';
     public ?string $moveTargetPath = null;
     public ?string $itemToMoveId = null;
+    public array $itemsToMove = [];
 
     // Subfolder creation properties
     public ?string $subfolderParentPath = null;
@@ -297,6 +298,26 @@ class FileManager extends Page
     }
 
     /**
+     * Select all items in the current view.
+     */
+    public function selectAll(): void
+    {
+        $this->selectedItems = $this->items->map(fn ($item) => $item->getIdentifier())->toArray();
+    }
+
+    /**
+     * Check if all items are selected.
+     */
+    public function allSelected(): bool
+    {
+        if ($this->items->isEmpty()) {
+            return false;
+        }
+
+        return count($this->selectedItems) === $this->items->count();
+    }
+
+    /**
      * Check if item is selected.
      */
     public function isSelected(string $itemId): bool
@@ -469,8 +490,6 @@ class FileManager extends Page
      */
     public function deleteItem(string $itemId): void
     {
-        \Illuminate\Support\Facades\Log::info('FileManager deleteItem called', ['itemId' => $itemId]);
-
         $item = $this->getAdapter()->getItem($itemId);
 
         if (!$item) {
@@ -513,8 +532,78 @@ class FileManager extends Page
     public function openMoveDialog(string $itemId): void
     {
         $this->itemToMoveId = $itemId;
+        $this->itemsToMove = [];
         $this->moveTargetPath = null;
         $this->dispatch('open-modal', id: 'move-item-modal');
+    }
+
+    /**
+     * Open move dialog for selected items.
+     */
+    public function openMoveDialogForSelected(): void
+    {
+        if (empty($this->selectedItems)) {
+            return;
+        }
+
+        $this->itemsToMove = $this->selectedItems;
+        $this->itemToMoveId = null;
+        $this->moveTargetPath = null;
+        $this->dispatch('open-modal', id: 'move-item-modal');
+    }
+
+    /**
+     * Move selected items to target folder.
+     */
+    public function moveSelected(): void
+    {
+        if (empty($this->itemsToMove)) {
+            return;
+        }
+
+        $successCount = 0;
+        $failCount = 0;
+
+        foreach ($this->itemsToMove as $itemId) {
+            $item = $this->getAdapter()->getItem($itemId);
+
+            if (!$item) {
+                $failCount++;
+                continue;
+            }
+
+            if (!$this->getAuthorizationService()->canUpdate(null, $item)) {
+                $failCount++;
+                continue;
+            }
+
+            $result = $this->getAdapter()->move($itemId, $this->moveTargetPath);
+
+            if ($result === true) {
+                $successCount++;
+            } else {
+                $failCount++;
+            }
+        }
+
+        if ($successCount > 0) {
+            Notification::make()
+                ->title("{$successCount} item(s) moved successfully")
+                ->success()
+                ->send();
+        }
+
+        if ($failCount > 0) {
+            Notification::make()
+                ->title("{$failCount} item(s) could not be moved")
+                ->warning()
+                ->send();
+        }
+
+        $this->itemsToMove = [];
+        $this->moveTargetPath = null;
+        $this->selectedItems = [];
+        $this->dispatch('close-modal', id: 'move-item-modal');
     }
 
     /**
@@ -592,8 +681,6 @@ class FileManager extends Page
         if (!$this->itemToRenameId) {
             return;
         }
-
-        \Illuminate\Support\Facades\Log::info('FileManager renameItem called', ['itemId' => $this->itemToRenameId, 'newName' => $this->renameItemName]);
 
         $item = $this->getAdapter()->getItem($this->itemToRenameId);
 
@@ -728,8 +815,6 @@ class FileManager extends Page
             return;
         }
 
-        \Illuminate\Support\Facades\Log::info('FileManager moveItem called', ['itemId' => $this->itemToMoveId, 'target' => $this->moveTargetPath]);
-
         $item = $this->getAdapter()->getItem($this->itemToMoveId);
 
         if (!$item) {
@@ -850,8 +935,6 @@ class FileManager extends Page
      */
     public function refresh(): void
     {
-        // Clear cached data by triggering a re-render
-        // The computed properties will re-fetch from the adapter
         $this->dispatch('$refresh');
 
         Notification::make()

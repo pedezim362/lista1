@@ -17,7 +17,7 @@
             {{-- Chevron toggle --}}
             @if(count($folder['children']) > 0)
                 <button
-                    wire:click.stop="toggleFolder(@js($folderId))"
+                    x-on:click.stop="$wire.toggleFolder({{ json_encode($folderId) }})"
                     class="flex items-center justify-center w-4 h-4 rounded hover:bg-gray-300 dark:hover:bg-gray-600 shrink-0"
                     title="Expand/collapse"
                 >
@@ -33,7 +33,7 @@
 
             {{-- Folder icon and name --}}
             <button
-                wire:click="navigateTo(@js($folderId))"
+                x-on:click="$wire.navigateTo({{ json_encode($folderId) }})"
                 class="flex items-center gap-2 flex-1 min-w-0 text-left"
             >
                 <x-heroicon-o-folder class="w-3.5 h-3.5 text-primary-500 shrink-0" />
@@ -57,21 +57,21 @@
                         :class="showActions ? 'opacity-100' : 'opacity-0 pointer-events-none'"
                     >
                         <button
-                            wire:click.stop="openCreateSubfolderDialog(@js($folderId))"
+                            x-on:click.stop="$wire.openCreateSubfolderDialog({{ json_encode($folderId) }})"
                             class="p-0.5 rounded hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                             title="Add subfolder"
                         >
                             <x-heroicon-m-folder-plus class="w-3 h-3" />
                         </button>
                         <button
-                            wire:click.stop="openRenameDialog(@js($folderId))"
+                            x-on:click.stop="$wire.openRenameDialog({{ json_encode($folderId) }})"
                             class="p-0.5 rounded hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                             title="Rename"
                         >
                             <x-heroicon-m-pencil class="w-3 h-3" />
                         </button>
                         <button
-                            wire:click.stop="openMoveDialog(@js($folderId))"
+                            x-on:click.stop="$wire.openMoveDialog({{ json_encode($folderId) }})"
                             class="p-0.5 rounded hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                             title="Move"
                         >

@@ -3,17 +3,17 @@
 namespace MWGuerra\FileManager\Schemas\Components;
 
 use Closure;
-use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Livewire;
+use MWGuerra\FileManager\Livewire\EmbeddedFileSystem;
 
 /**
  * Embeddable File System component for use in Filament schemas/forms.
  *
  * This component embeds the storage-mode file browser into any Filament form or page.
+ * Extends Filament's built-in Livewire component for proper component isolation.
  */
-class FileSystemEmbed extends Component
+class FileSystemEmbed extends Livewire
 {
-    protected string $view = 'filemanager::schemas.components.file-system-embed';
-
     protected string|Closure $height = '500px';
 
     protected bool|Closure $showHeader = true;
@@ -28,9 +28,35 @@ class FileSystemEmbed extends Component
 
     protected ?string $initialFolder = null;
 
-    public static function make(): static
+    public static function make(Closure|string $component = null, Closure|array $data = []): static
     {
-        return app(static::class);
+        $static = app(static::class, [
+            'component' => $component ?? EmbeddedFileSystem::class,
+            'data' => $data,
+        ]);
+        $static->configure();
+        $static->key('embedded-file-system');
+
+        return $static;
+    }
+
+    /**
+     * Get the properties to pass to the Livewire component.
+     *
+     * @return array<string, mixed>
+     */
+    public function getComponentProperties(): array
+    {
+        return [
+            ...parent::getComponentProperties(),
+            'height' => $this->getHeight(),
+            'showHeader' => $this->shouldShowHeader(),
+            'showSidebar' => $this->shouldShowSidebar(),
+            'defaultViewMode' => $this->getDefaultViewMode(),
+            'disk' => $this->getDisk(),
+            'target' => $this->getTarget(),
+            'initialFolder' => $this->getInitialFolder(),
+        ];
     }
 
     /**

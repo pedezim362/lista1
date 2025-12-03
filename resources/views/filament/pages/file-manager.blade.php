@@ -29,7 +29,7 @@
                             $crumbId = $crumb['id'];
                         @endphp
                         <button
-                            wire:click="navigateTo(@js($crumbId))"
+                            x-on:click="$wire.navigateTo({{ json_encode($crumbId) }})"
                             class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
                         >
                             {{ $crumb['name'] }}
@@ -41,19 +41,6 @@
             {{-- Controls --}}
             <div class="flex items-center gap-2">
                 @if(!$this->isReadOnly())
-                    {{-- Delete Selected Button (shown only when items are selected) --}}
-                    @if(count($selectedItems) > 0)
-                        <x-filament::button
-                            wire:click="deleteSelected"
-                            wire:confirm="Are you sure you want to delete {{ count($selectedItems) }} item(s)?"
-                            color="danger"
-                            size="sm"
-                            icon="heroicon-o-trash"
-                        >
-                            Delete ({{ count($selectedItems) }})
-                        </x-filament::button>
-                    @endif
-
                     {{-- New Folder Button --}}
                     <x-filament::button
                         x-on:click="$dispatch('open-modal', { id: 'create-folder-modal' })"
@@ -185,6 +172,62 @@
                         <p class="text-sm text-gray-500 dark:text-gray-500">Create a new folder or upload files to get started</p>
                     </div>
                 @else
+                    {{-- Bulk Selection Management (only for non-read-only mode) --}}
+                    @if(!$this->isReadOnly())
+                        <div class="flex items-center justify-between rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-2.5 mb-4">
+                            <div class="flex items-center gap-3">
+                                {{-- Select All / Deselect All --}}
+                                @if($this->allSelected())
+                                    <button
+                                        wire:click="clearSelection"
+                                        class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                                    >
+                                        <x-heroicon-o-x-mark class="w-4 h-4" />
+                                        <span>Deselect All</span>
+                                    </button>
+                                @else
+                                    <button
+                                        wire:click="selectAll"
+                                        class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                                    >
+                                        <x-heroicon-o-check-circle class="w-4 h-4" />
+                                        <span>Select All</span>
+                                    </button>
+                                @endif
+
+                                @if(count($selectedItems) > 0)
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">
+                                        {{ count($selectedItems) }} selected
+                                    </span>
+
+                                    <div class="h-4 w-px bg-gray-300 dark:bg-gray-600"></div>
+
+                                    {{-- Move Selected --}}
+                                    <button
+                                        wire:click="openMoveDialogForSelected"
+                                        class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                                    >
+                                        <x-heroicon-o-arrow-right-circle class="w-4 h-4" />
+                                        <span>Move</span>
+                                    </button>
+                                @endif
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                @if(count($selectedItems) > 0)
+                                    {{-- Delete Selected --}}
+                                    <button
+                                        wire:click="deleteSelected"
+                                        wire:confirm="Are you sure you want to delete {{ count($selectedItems) }} item(s)?"
+                                        class="flex items-center gap-2 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+                                    >
+                                        <x-heroicon-o-trash class="w-4 h-4" />
+                                        <span>Delete</span>
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
                     @if($viewMode === 'grid')
                         {{-- Grid View --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
@@ -245,7 +288,11 @@
     {{-- Move Item Modal --}}
     <x-filament::modal id="move-item-modal" width="md">
         <x-slot name="heading">
-            Move to Folder
+            @if(count($itemsToMove) > 0)
+                Move {{ count($itemsToMove) }} Item(s)
+            @else
+                Move to Folder
+            @endif
         </x-slot>
 
         <x-slot name="description">
@@ -269,13 +316,15 @@
                     $itemBeingMoved = $this->itemToMove;
                     $isCurrentFolder = $itemBeingMoved && $itemBeingMoved->getParentPath() === $folder->getPath();
                     $isSameItem = $itemToMoveId === $folderId;
+                    $isBulkMove = count($itemsToMove) > 0;
+                    $isDisabled = $isBulkMove ? in_array($folderId, $itemsToMove) : ($isCurrentFolder || $isSameItem);
                 @endphp
                 <button
-                    wire:click="setMoveTarget(@js($folderId))"
-                    @if($isCurrentFolder || $isSameItem) disabled @endif
+                    x-on:click="$wire.setMoveTarget({{ json_encode($folderId) }})"
+                    @if($isDisabled) disabled @endif
                     class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors
                         {{ $moveTargetPath === $folderId ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600' : 'hover:bg-gray-100 dark:hover:bg-gray-800' }}
-                        {{ $isCurrentFolder || $isSameItem ? 'opacity-50 cursor-not-allowed' : '' }}"
+                        {{ $isDisabled ? 'opacity-50 cursor-not-allowed' : '' }}"
                     style="padding-left: {{ $folder->getDepth() * 16 + 12 }}px"
                 >
                     <x-heroicon-o-folder class="w-4 h-4" />
@@ -291,11 +340,19 @@
             >
                 Cancel
             </x-filament::button>
-            <x-filament::button
-                wire:click="moveItem"
-            >
-                Move Here
-            </x-filament::button>
+            @if(count($itemsToMove) > 0)
+                <x-filament::button
+                    wire:click="moveSelected"
+                >
+                    Move {{ count($itemsToMove) }} Item(s)
+                </x-filament::button>
+            @else
+                <x-filament::button
+                    wire:click="moveItem"
+                >
+                    Move Here
+                </x-filament::button>
+            @endif
         </x-slot>
     </x-filament::modal>
 
@@ -558,14 +615,14 @@
                         @endif
                         @if(!$this->isReadOnly())
                             <x-filament::button
-                                wire:click="openMoveDialog(@js($previewItem->getIdentifier()))"
+                                x-on:click="$wire.openMoveDialog({{ json_encode($previewItem->getIdentifier()) }})"
                                 color="gray"
                                 icon="heroicon-o-arrow-right-circle"
                             >
                                 Move
                             </x-filament::button>
                             <x-filament::button
-                                wire:click="openRenameDialog(@js($previewItem->getIdentifier()))"
+                                x-on:click="$wire.openRenameDialog({{ json_encode($previewItem->getIdentifier()) }})"
                                 color="gray"
                                 icon="heroicon-o-pencil"
                             >

@@ -46,6 +46,7 @@ class EmbeddedFileManager extends Component
     public string $newFolderName = '';
     public ?string $moveTargetPath = null;
     public ?string $itemToMoveId = null;
+    public array $itemsToMove = [];
     public ?string $subfolderParentPath = null;
     public string $subfolderName = '';
     public ?string $itemToRenameId = null;
@@ -226,6 +227,26 @@ class EmbeddedFileManager extends Component
         $this->selectedItems = [];
     }
 
+    /**
+     * Select all items in the current view.
+     */
+    public function selectAll(): void
+    {
+        $this->selectedItems = $this->items->map(fn ($item) => $item->getIdentifier())->toArray();
+    }
+
+    /**
+     * Check if all items are selected.
+     */
+    public function allSelected(): bool
+    {
+        if ($this->items->isEmpty()) {
+            return false;
+        }
+
+        return count($this->selectedItems) === $this->items->count();
+    }
+
     public function handleItemClick(string $itemId, bool $ctrlKey = false): void
     {
         $item = $this->getAdapter()->getItem($itemId);
@@ -387,8 +408,79 @@ class EmbeddedFileManager extends Component
     public function openMoveDialog(string $itemId): void
     {
         $this->itemToMoveId = $itemId;
+        $this->itemsToMove = [];
         $this->moveTargetPath = null;
         $this->dispatch('open-modal', id: 'embedded-move-modal-' . $this->getId());
+    }
+
+    /**
+     * Open move dialog for selected items.
+     */
+    public function openMoveDialogForSelected(): void
+    {
+        if (empty($this->selectedItems)) {
+            return;
+        }
+
+        $this->itemsToMove = $this->selectedItems;
+        $this->itemToMoveId = null;
+        $this->moveTargetPath = null;
+        $this->dispatch('open-modal', id: 'embedded-move-modal-' . $this->getId());
+    }
+
+    /**
+     * Move selected items to target folder.
+     */
+    public function moveSelected(): void
+    {
+        if (empty($this->itemsToMove)) {
+            return;
+        }
+
+        $successCount = 0;
+        $failCount = 0;
+
+        foreach ($this->itemsToMove as $itemId) {
+            $item = $this->getAdapter()->getItem($itemId);
+
+            if (!$item) {
+                $failCount++;
+                continue;
+            }
+
+            if (!$this->getAuthorizationService()->canUpdate(null, $item)) {
+                $failCount++;
+                continue;
+            }
+
+            $result = $this->getAdapter()->move($itemId, $this->moveTargetPath);
+
+            if ($result === true) {
+                $successCount++;
+                $this->recordChange('move', $itemId, ['to' => $this->moveTargetPath]);
+            } else {
+                $failCount++;
+            }
+        }
+
+        if ($successCount > 0) {
+            Notification::make()
+                ->title("{$successCount} item(s) moved successfully")
+                ->success()
+                ->send();
+        }
+
+        if ($failCount > 0) {
+            Notification::make()
+                ->title("{$failCount} item(s) could not be moved")
+                ->warning()
+                ->send();
+        }
+
+        $this->itemsToMove = [];
+        $this->moveTargetPath = null;
+        $this->selectedItems = [];
+        $this->dispatch('close-modal', id: 'embedded-move-modal-' . $this->getId());
     }
 
     public function openCreateSubfolderDialog(string $parentPath): void
@@ -687,8 +779,6 @@ class EmbeddedFileManager extends Component
      */
     public function refresh(): void
     {
-        // Clear cached data by triggering a re-render
-        // The computed properties will re-fetch from the adapter
         $this->dispatch('$refresh');
 
         Notification::make()
