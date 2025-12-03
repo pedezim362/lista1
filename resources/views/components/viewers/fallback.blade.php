@@ -27,10 +27,10 @@ Variables:
     <p class="text-lg font-medium text-gray-700 dark:text-gray-300">
         Preview not available
     </p>
-    <p class="text-sm mt-1 text-center max-w-md">
+    <p class="text-sm mt-1 text-center max-w-md text-gray-600 dark:text-gray-400">
         This file type cannot be previewed in the browser.
         @if($fileType)
-            <br><span class="text-gray-400">Type: {{ $fileType->label() }}</span>
+            <br><span class="text-gray-500 dark:text-gray-400">Type: {{ $fileType->label() }}</span>
         @endif
     </p>
 
@@ -46,7 +46,7 @@ Variables:
     @endif
 
     @if($item)
-        <div class="mt-4 text-xs text-gray-400">
+        <div class="mt-4 text-xs text-gray-500 dark:text-gray-400">
             @if($item->size)
                 <span>{{ $item->getFormattedSize() }}</span>
             @endif

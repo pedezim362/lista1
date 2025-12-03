@@ -37,7 +37,7 @@
                 class="flex items-center gap-2 flex-1 min-w-0 text-left"
             >
                 <x-heroicon-o-folder class="w-3.5 h-3.5 text-primary-500 shrink-0" />
-                <span class="truncate text-sm">{{ $folder['name'] }}</span>
+                <span class="truncate text-sm text-gray-700 dark:text-gray-300">{{ $folder['name'] }}</span>
             </button>
 
             {{-- Right side container for badge/actions --}}

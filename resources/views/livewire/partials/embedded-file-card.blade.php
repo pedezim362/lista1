@@ -52,15 +52,15 @@
                 @else
                     <div class="flex h-full items-center justify-center">
                         @if($item->isVideo())
-                            <x-heroicon-o-video-camera class="w-10 h-10 text-gray-400" />
+                            <x-heroicon-o-video-camera class="w-10 h-10 text-red-500 dark:text-red-400" />
                         @elseif($item->isImage())
-                            <x-heroicon-o-photo class="w-10 h-10 text-blue-400" />
+                            <x-heroicon-o-photo class="w-10 h-10 text-blue-500 dark:text-blue-400" />
                         @elseif($item->isDocument())
-                            <x-heroicon-o-document-text class="w-10 h-10 text-green-400" />
+                            <x-heroicon-o-document-text class="w-10 h-10 text-green-600 dark:text-green-400" />
                         @elseif($item->isAudio())
-                            <x-heroicon-o-musical-note class="w-10 h-10 text-purple-400" />
+                            <x-heroicon-o-musical-note class="w-10 h-10 text-purple-500 dark:text-purple-400" />
                         @else
-                            <x-heroicon-o-document class="w-10 h-10 text-gray-400" />
+                            <x-heroicon-o-document class="w-10 h-10 text-gray-500 dark:text-gray-400" />
                         @endif
                     </div>
                 @endif
@@ -104,14 +104,14 @@
                     <x-filament::dropdown.list>
                         <x-filament::dropdown.list.item
                             icon="heroicon-o-arrow-right-circle"
-                            x-on:click="close"
+                            x-on:click.stop="close"
                             wire:click="openMoveDialog('{{ $itemId }}')"
                         >
                             Move
                         </x-filament::dropdown.list.item>
                         <x-filament::dropdown.list.item
                             icon="heroicon-o-pencil"
-                            x-on:click="close"
+                            x-on:click.stop="close"
                             wire:click="openRenameDialog('{{ $itemId }}')"
                         >
                             Rename
@@ -119,7 +119,7 @@
                         <x-filament::dropdown.list.item
                             icon="heroicon-o-trash"
                             color="danger"
-                            x-on:click="close"
+                            x-on:click.stop="close"
                             wire:click="deleteItem('{{ $itemId }}')"
                             wire:confirm="Are you sure you want to delete this item?"
                         >

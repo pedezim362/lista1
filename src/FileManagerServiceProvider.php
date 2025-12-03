@@ -16,6 +16,7 @@ use MWGuerra\FileManager\Livewire\EmbeddedFileManager;
 use MWGuerra\FileManager\Livewire\EmbeddedFileSystem;
 use MWGuerra\FileManager\Policies\FileSystemItemPolicy;
 use MWGuerra\FileManager\Console\Commands\FileSystemListCommand;
+use MWGuerra\FileManager\Console\Commands\InstallCommand;
 use MWGuerra\FileManager\Console\Commands\ListFilesCommand;
 use MWGuerra\FileManager\Console\Commands\RebuildFileSystemItemsCommand;
 use MWGuerra\FileManager\Console\Commands\UploadFolderCommand;
@@ -54,6 +55,7 @@ class FileManagerServiceProvider extends PackageServiceProvider
             ->runsMigrations()
             ->hasCommands([
                 FileSystemListCommand::class,
+                InstallCommand::class,
                 ListFilesCommand::class,
                 RebuildFileSystemItemsCommand::class,
                 UploadFolderCommand::class,

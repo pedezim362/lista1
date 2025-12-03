@@ -5,7 +5,7 @@
     }">
         @if($showHeader)
         {{-- Header with Breadcrumbs and Controls --}}
-        <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3">
+        <div class="flex items-center justify-between border-b border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3">
             {{-- Breadcrumbs --}}
             <nav class="flex items-center space-x-2 text-sm">
                 @foreach($this->breadcrumbs as $index => $crumb)
@@ -126,7 +126,7 @@
                             class="flex items-center gap-2 flex-1 min-w-0 text-left"
                         >
                             <x-heroicon-o-folder class="w-4 h-4 text-primary-500 shrink-0" />
-                            <span class="truncate text-sm">Root</span>
+                            <span class="truncate text-sm text-gray-700 dark:text-gray-300">Root</span>
                         </button>
 
                         @php $rootFileCount = $this->rootFileCount; @endphp
@@ -168,9 +168,9 @@
                 @if($this->items->isEmpty())
                     {{-- Empty State --}}
                     <div class="flex flex-col items-center justify-center h-full">
-                        <x-heroicon-o-folder-open class="w-12 h-12 text-gray-400 mb-3" />
-                        <p class="text-sm text-gray-500 dark:text-gray-400">This folder is empty</p>
-                        <p class="text-xs text-gray-400 dark:text-gray-500">Create a folder or upload files to get started</p>
+                        <x-heroicon-o-folder-open class="w-12 h-12 text-gray-400 dark:text-gray-500 mb-3" />
+                        <p class="text-sm text-gray-600 dark:text-gray-400">This folder is empty</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-500">Create a folder or upload files to get started</p>
                     </div>
                 @else
                     @if($viewMode === 'grid')
@@ -370,7 +370,7 @@
                     class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
                 <div class="space-y-2" wire:loading.remove wire:target="uploadedFiles">
-                    <x-heroicon-o-cloud-arrow-up class="w-10 h-10 mx-auto text-gray-400" />
+                    <x-heroicon-o-cloud-arrow-up class="w-10 h-10 mx-auto text-gray-400 dark:text-gray-500" />
                     <p class="text-sm text-gray-600 dark:text-gray-400">
                         <span class="font-medium text-primary-600 dark:text-primary-400">Click to upload</span>
                         or drag and drop
@@ -392,7 +392,7 @@
                             <li class="flex items-center gap-2">
                                 <x-heroicon-o-check-circle class="w-4 h-4 shrink-0 text-success-500" />
                                 <span class="truncate">{{ $file->getClientOriginalName() }}</span>
-                                <span class="text-xs text-gray-400">({{ number_format($file->getSize() / 1024, 1) }} KB)</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">({{ number_format($file->getSize() / 1024, 1) }} KB)</span>
                             </li>
                         @endforeach
                     </ul>
@@ -446,7 +446,7 @@
                             class="w-5 h-5 {{ $fileType->iconColor() }}"
                         />
                     @else
-                        <x-heroicon-o-document class="w-5 h-5 text-gray-400" />
+                        <x-heroicon-o-document class="w-5 h-5 text-gray-500 dark:text-gray-400" />
                     @endif
                     <span class="truncate">{{ $previewItem->getName() }}</span>
                 </div>

@@ -51,6 +51,59 @@ php artisan filemanager:rebuild
 
 This will scan your storage and create database records for all existing files.
 
+### Tailwind CSS Setup
+
+This package uses Tailwind CSS utility classes. Following [Filament's recommended approach](https://filamentphp.com/docs/4.x/advanced/assets#using-tailwind-css-in-plugins), you need to include the package's views in your CSS build.
+
+**Option 1: Automatic Installation (Recommended)**
+
+Run the install command to automatically configure your CSS file:
+
+```bash
+php artisan filemanager:install
+```
+
+This command will add all necessary Tailwind CSS configuration to your `resources/css/app.css` file.
+
+If your CSS file is in a different location, specify the path:
+
+```bash
+php artisan filemanager:install --css-path=resources/css/filament/admin/theme.css
+```
+
+**Option 2: Manual Configuration**
+
+Add these lines to your `resources/css/app.css` (or your custom theme CSS file):
+
+```css
+@import 'tailwindcss';
+
+/* Include the package views for Tailwind to scan */
+@source '../../vendor/mwguerra/filemanager/resources/views/**/*.blade.php';
+
+/* Required for Tailwind v4: Configure dark mode to use Filament's class-based toggle */
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+    /* Map Filament's primary color custom properties to Tailwind color utilities */
+    --color-primary-50: var(--primary-50);
+    --color-primary-100: var(--primary-100);
+    --color-primary-200: var(--primary-200);
+    --color-primary-300: var(--primary-300);
+    --color-primary-400: var(--primary-400);
+    --color-primary-500: var(--primary-500);
+    --color-primary-600: var(--primary-600);
+    --color-primary-700: var(--primary-700);
+    --color-primary-800: var(--primary-800);
+    --color-primary-900: var(--primary-900);
+    --color-primary-950: var(--primary-950);
+}
+```
+
+> **Important for Tailwind CSS v4**:
+> - The `@variant dark` directive is required because Tailwind v4 defaults to `prefers-color-scheme` media queries, but Filament uses a class-based dark mode (`.dark` class on the HTML element).
+> - The `@theme` block maps Filament's primary color CSS custom properties to Tailwind utilities, enabling classes like `bg-primary-500` to work correctly.
+
 Register the plugin in your Panel Provider:
 
 ```php
@@ -146,6 +199,19 @@ FileSystemEmbed::make()
 ```
 
 ## Artisan Commands
+
+### filemanager:install
+
+Install FileManager CSS configuration for Tailwind CSS v4:
+
+```bash
+php artisan filemanager:install [options]
+```
+
+| Option | Description |
+|--------|-------------|
+| `--css-path=` | Path to CSS file (default: resources/css/app.css) |
+| `--force` | Overwrite existing configurations |
 
 ### filesystem:list
 

@@ -1,10 +1,10 @@
 <x-filament-panels::page>
-    <div class="flex flex-col h-[calc(100vh-12rem)]" x-data="{
+    <div class="flex flex-col h-[calc(100vh-12rem)] border border-gray-300 rounded-xl dark:border-none" x-data="{
         draggedItemId: null,
         isDragging: false,
     }">
         {{-- Header with Breadcrumbs and Controls --}}
-        <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-6 py-4 rounded-t-xl">
+        <div class="flex items-center justify-between border-b border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-6 py-4 rounded-t-xl">
             {{-- Breadcrumbs --}}
             <nav class="flex items-center space-x-2 text-sm">
                 @foreach($this->breadcrumbs as $index => $crumb)
@@ -124,7 +124,7 @@
                             class="flex items-center gap-2 flex-1 min-w-0 text-left"
                         >
                             <x-heroicon-o-folder class="w-4 h-4 text-primary-500 shrink-0" />
-                            <span class="truncate">Root</span>
+                            <span class="truncate text-gray-700 dark:text-gray-300">Root</span>
                         </button>
 
                         {{-- Right side container for badge/actions (fixed width to prevent layout shift) --}}
@@ -169,9 +169,9 @@
                 @if($this->items->isEmpty())
                     {{-- Empty State --}}
                     <div class="flex flex-col items-center justify-center h-full">
-                        <x-heroicon-o-folder-open class="w-16 h-16 text-gray-400 mb-4" />
-                        <p class="text-lg text-gray-500 dark:text-gray-400">This folder is empty</p>
-                        <p class="text-sm text-gray-400 dark:text-gray-500">Create a new folder or upload files to get started</p>
+                        <x-heroicon-o-folder-open class="w-16 h-16 text-gray-400 dark:text-gray-500 mb-4" />
+                        <p class="text-lg text-gray-600 dark:text-gray-400">This folder is empty</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-500">Create a new folder or upload files to get started</p>
                     </div>
                 @else
                     @if($viewMode === 'grid')
