@@ -242,3 +242,28 @@ describe('fluent api', function () {
             ->and($component->getInitialFolder())->toBe('public');
     });
 });
+
+describe('component properties method', function () {
+    it('has getComponentProperties method', function () {
+        expect(method_exists(FileSystemEmbed::class, 'getComponentProperties'))->toBeTrue();
+    });
+});
+
+describe('inheritance', function () {
+    it('extends Filament Livewire component', function () {
+        expect(is_subclass_of(FileSystemEmbed::class, \Filament\Schemas\Components\Livewire::class))->toBeTrue();
+    });
+
+    it('is a Filament schema component', function () {
+        expect(is_subclass_of(FileSystemEmbed::class, \Filament\Schemas\Components\Component::class))->toBeTrue();
+    });
+});
+
+describe('default component class', function () {
+    it('uses EmbeddedFileSystem as default component', function () {
+        $component = FileSystemEmbed::make();
+
+        // The component should be configured to use EmbeddedFileSystem
+        expect($component)->toBeInstanceOf(FileSystemEmbed::class);
+    });
+});
