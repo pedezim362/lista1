@@ -1,4 +1,15 @@
 <x-filament-panels::page>
+    @push('styles')
+    <style>
+        .fi-modal-close-overlay {
+            width: 100vw !important;
+        }
+        html:has(.fi-modal-open) body {
+            width: 100vw;
+        }
+    </style>
+    @endpush
+
     <div class="flex flex-col h-[calc(100vh-12rem)] border border-gray-300 rounded-xl dark:border-none" x-data="{
         draggedItemId: null,
         isDragging: false,

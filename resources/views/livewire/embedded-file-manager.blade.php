@@ -1,3 +1,14 @@
+@once
+<style>
+    .fi-modal-close-overlay {
+        width: 100vw !important;
+    }
+    html:has(.fi-modal-open) body {
+        width: 100vw;
+    }
+</style>
+@endonce
+
 <div class="fi-embedded-file-manager border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden" style="height: {{ $height }};">
     <div class="flex flex-col h-full" x-data="{
         draggedItemId: null,
