@@ -2,7 +2,10 @@
 
 namespace MWGuerra\FileManager\Tests;
 
+use Filament\FilamentServiceProvider;
+use Filament\Support\SupportServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\LivewireServiceProvider;
 use MWGuerra\FileManager\FileManagerServiceProvider;
 use MWGuerra\FileManager\Models\FileSystemItem;
 use Orchestra\Testbench\TestCase as Orchestra;
@@ -14,11 +17,20 @@ class TestCase extends Orchestra
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Start session for Livewire components
+        $this->app['session']->start();
+
+        // Share empty error bag with views for Livewire components
+        $this->app['view']->share('errors', new \Illuminate\Support\ViewErrorBag());
     }
 
     protected function getPackageProviders($app): array
     {
         return [
+            LivewireServiceProvider::class,
+            FilamentServiceProvider::class,
+            SupportServiceProvider::class,
             FileManagerServiceProvider::class,
         ];
     }
@@ -43,6 +55,9 @@ class TestCase extends Orchestra
             'driver' => 'local',
             'root' => storage_path('framework/testing'),
         ]);
+
+        // Session configuration
+        $app['config']->set('session.driver', 'array');
 
         // FileManager configuration
         $app['config']->set('filemanager.mode', 'storage');
