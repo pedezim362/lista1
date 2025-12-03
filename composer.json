@@ -50,7 +50,8 @@
     },
     "autoload": {
         "psr-4": {
-            "MWGuerra\\FileManager\\": "src/"
+            "MWGuerra\\FileManager\\": "src/",
+            "MWGuerra\\FileManager\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
