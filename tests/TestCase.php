@@ -6,7 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use MWGuerra\FileManager\FileManagerServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 
-abstract class TestCase extends Orchestra
+class TestCase extends Orchestra
 {
     protected function setUp(): void
     {

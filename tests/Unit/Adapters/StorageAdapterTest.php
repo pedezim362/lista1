@@ -1,214 +1,155 @@
 <?php
 
-namespace MWGuerra\FileManager\Tests\Unit\Adapters;
-
 use Illuminate\Support\Facades\Storage;
 use MWGuerra\FileManager\Adapters\StorageAdapter;
-use MWGuerra\FileManager\Tests\TestCase;
 
-class StorageAdapterTest extends TestCase
-{
-    protected StorageAdapter $adapter;
+beforeEach(function () {
+    Storage::fake('testing');
+    $this->adapter = new StorageAdapter('testing', '', false);
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+it('returns folder for directory', function () {
+    Storage::disk('testing')->makeDirectory('my-folder');
 
-        // Create a fresh testing disk
-        Storage::fake('testing');
+    $item = $this->adapter->getItem('my-folder');
 
-        $this->adapter = new StorageAdapter('testing', '', false);
-    }
+    expect($item)->not->toBeNull()
+        ->and($item->isFolder())->toBeTrue()
+        ->and($item->getName())->toBe('my-folder');
+});
 
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-    }
+it('returns file for file', function () {
+    Storage::disk('testing')->put('test-file.txt', 'Hello World');
 
-    public function test_get_item_returns_folder_for_directory(): void
-    {
-        // Create a directory
-        Storage::disk('testing')->makeDirectory('my-folder');
+    $item = $this->adapter->getItem('test-file.txt');
 
-        // Get the item
-        $item = $this->adapter->getItem('my-folder');
+    expect($item)->not->toBeNull()
+        ->and($item->isFolder())->toBeFalse()
+        ->and($item->getName())->toBe('test-file.txt');
+});
 
-        // Assert it's recognized as a folder
-        $this->assertNotNull($item);
-        $this->assertTrue($item->isFolder(), 'Directory should be recognized as a folder');
-        $this->assertEquals('my-folder', $item->getName());
-    }
+it('returns null for nonexistent path', function () {
+    $item = $this->adapter->getItem('nonexistent-path');
 
-    public function test_get_item_returns_file_for_file(): void
-    {
-        // Create a file
-        Storage::disk('testing')->put('test-file.txt', 'Hello World');
+    expect($item)->toBeNull();
+});
 
-        // Get the item
-        $item = $this->adapter->getItem('test-file.txt');
+it('returns folder for nested directory', function () {
+    Storage::disk('testing')->makeDirectory('parent/child');
 
-        // Assert it's recognized as a file
-        $this->assertNotNull($item);
-        $this->assertFalse($item->isFolder(), 'File should not be recognized as a folder');
-        $this->assertEquals('test-file.txt', $item->getName());
-    }
+    $item = $this->adapter->getItem('parent/child');
 
-    public function test_get_item_returns_null_for_nonexistent(): void
-    {
-        $item = $this->adapter->getItem('nonexistent-path');
+    expect($item)->not->toBeNull()
+        ->and($item->isFolder())->toBeTrue()
+        ->and($item->getName())->toBe('child');
+});
 
-        $this->assertNull($item);
-    }
+it('returns file in directory', function () {
+    Storage::disk('testing')->makeDirectory('folder');
+    Storage::disk('testing')->put('folder/document.pdf', 'PDF content');
 
-    public function test_get_item_returns_folder_for_nested_directory(): void
-    {
-        // Create nested directories
-        Storage::disk('testing')->makeDirectory('parent/child');
+    $item = $this->adapter->getItem('folder/document.pdf');
 
-        // Get the child folder
-        $item = $this->adapter->getItem('parent/child');
+    expect($item)->not->toBeNull()
+        ->and($item->isFolder())->toBeFalse()
+        ->and($item->getName())->toBe('document.pdf');
+});
 
-        // Assert it's recognized as a folder
-        $this->assertNotNull($item);
-        $this->assertTrue($item->isFolder(), 'Nested directory should be recognized as a folder');
-        $this->assertEquals('child', $item->getName());
-    }
+it('returns folders and files with correct order', function () {
+    Storage::disk('testing')->makeDirectory('folder1');
+    Storage::disk('testing')->makeDirectory('folder2');
+    Storage::disk('testing')->put('file1.txt', 'content');
+    Storage::disk('testing')->put('file2.txt', 'content');
 
-    public function test_get_item_returns_file_in_directory(): void
-    {
-        // Create a file in a directory
-        Storage::disk('testing')->makeDirectory('folder');
-        Storage::disk('testing')->put('folder/document.pdf', 'PDF content');
+    $items = $this->adapter->getItems();
 
-        // Get the file
-        $item = $this->adapter->getItem('folder/document.pdf');
+    expect($items)->toHaveCount(4)
+        ->and($items[0]->isFolder())->toBeTrue()
+        ->and($items[1]->isFolder())->toBeTrue()
+        ->and($items[2]->isFolder())->toBeFalse()
+        ->and($items[3]->isFolder())->toBeFalse();
+});
 
-        // Assert it's recognized as a file
-        $this->assertNotNull($item);
-        $this->assertFalse($item->isFolder(), 'File in directory should not be a folder');
-        $this->assertEquals('document.pdf', $item->getName());
-    }
+it('returns only folders when requested', function () {
+    Storage::disk('testing')->makeDirectory('folder1');
+    Storage::disk('testing')->makeDirectory('folder2');
+    Storage::disk('testing')->put('file.txt', 'content');
 
-    public function test_get_items_returns_folders_and_files(): void
-    {
-        // Create structure
-        Storage::disk('testing')->makeDirectory('folder1');
-        Storage::disk('testing')->makeDirectory('folder2');
-        Storage::disk('testing')->put('file1.txt', 'content');
-        Storage::disk('testing')->put('file2.txt', 'content');
+    $folders = $this->adapter->getFolders();
 
-        $items = $this->adapter->getItems();
+    expect($folders)->toHaveCount(2)
+        ->and($folders[0]->isFolder())->toBeTrue()
+        ->and($folders[1]->isFolder())->toBeTrue();
+});
 
-        // Should have 4 items
-        $this->assertCount(4, $items);
+it('hides hidden folders by default', function () {
+    Storage::disk('testing')->makeDirectory('visible-folder');
+    Storage::disk('testing')->makeDirectory('.hidden-folder');
 
-        // First two should be folders (sorted alphabetically, folders first)
-        $this->assertTrue($items[0]->isFolder());
-        $this->assertTrue($items[1]->isFolder());
+    $items = $this->adapter->getItems();
 
-        // Last two should be files
-        $this->assertFalse($items[2]->isFolder());
-        $this->assertFalse($items[3]->isFolder());
-    }
+    expect($items)->toHaveCount(1)
+        ->and($items[0]->getName())->toBe('visible-folder');
+});
 
-    public function test_get_folders_returns_only_folders(): void
-    {
-        // Create structure
-        Storage::disk('testing')->makeDirectory('folder1');
-        Storage::disk('testing')->makeDirectory('folder2');
-        Storage::disk('testing')->put('file.txt', 'content');
+it('shows hidden folders when enabled', function () {
+    $adapter = new StorageAdapter('testing', '', true);
 
-        $folders = $this->adapter->getFolders();
+    Storage::disk('testing')->makeDirectory('visible-folder');
+    Storage::disk('testing')->makeDirectory('.hidden-folder');
 
-        // Should only have 2 folders
-        $this->assertCount(2, $folders);
-        $this->assertTrue($folders[0]->isFolder());
-        $this->assertTrue($folders[1]->isFolder());
-    }
+    $items = $adapter->getItems();
 
-    public function test_hidden_folders_are_not_shown_by_default(): void
-    {
-        // Create visible and hidden folders
-        Storage::disk('testing')->makeDirectory('visible-folder');
-        Storage::disk('testing')->makeDirectory('.hidden-folder');
+    expect($items)->toHaveCount(2);
+});
 
-        $items = $this->adapter->getItems();
+it('creates folder successfully', function () {
+    $result = $this->adapter->createFolder('new-folder');
 
-        // Should only have 1 visible folder
-        $this->assertCount(1, $items);
-        $this->assertEquals('visible-folder', $items[0]->getName());
-    }
+    expect($result)->not->toBeNull()
+        ->and($result)->not->toBe('A folder with this name already exists')
+        ->and(Storage::disk('testing')->exists('new-folder'))->toBeTrue();
+});
 
-    public function test_hidden_folders_shown_when_enabled(): void
-    {
-        // Create adapter with show_hidden enabled
-        $adapter = new StorageAdapter('testing', '', true);
+it('returns error for duplicate folder', function () {
+    Storage::disk('testing')->makeDirectory('existing-folder');
 
-        // Create visible and hidden folders
-        Storage::disk('testing')->makeDirectory('visible-folder');
-        Storage::disk('testing')->makeDirectory('.hidden-folder');
+    $result = $this->adapter->createFolder('existing-folder');
 
-        $items = $adapter->getItems();
+    expect($result)->toBe('A folder with this name already exists');
+});
 
-        // Should have both folders
-        $this->assertCount(2, $items);
-    }
+it('deletes file successfully', function () {
+    Storage::disk('testing')->put('to-delete.txt', 'content');
 
-    public function test_create_folder_creates_directory(): void
-    {
-        $result = $this->adapter->createFolder('new-folder');
+    $result = $this->adapter->delete('to-delete.txt');
 
-        $this->assertNotNull($result);
-        $this->assertNotEquals('A folder with this name already exists', $result);
-        $this->assertTrue(Storage::disk('testing')->exists('new-folder'));
-    }
+    expect($result)->toBeTrue()
+        ->and(Storage::disk('testing')->exists('to-delete.txt'))->toBeFalse();
+});
 
-    public function test_create_folder_returns_error_for_duplicate(): void
-    {
-        Storage::disk('testing')->makeDirectory('existing-folder');
+it('deletes directory with contents', function () {
+    Storage::disk('testing')->makeDirectory('to-delete-folder');
+    Storage::disk('testing')->put('to-delete-folder/file.txt', 'content');
 
-        $result = $this->adapter->createFolder('existing-folder');
+    $result = $this->adapter->delete('to-delete-folder');
 
-        $this->assertEquals('A folder with this name already exists', $result);
-    }
+    expect($result)->toBeTrue()
+        ->and(Storage::disk('testing')->exists('to-delete-folder'))->toBeFalse();
+});
 
-    public function test_delete_removes_file(): void
-    {
-        Storage::disk('testing')->put('to-delete.txt', 'content');
+it('returns true for existing file', function () {
+    Storage::disk('testing')->put('exists.txt', 'content');
 
-        $result = $this->adapter->delete('to-delete.txt');
+    expect($this->adapter->exists('exists.txt'))->toBeTrue();
+});
 
-        $this->assertTrue($result);
-        $this->assertFalse(Storage::disk('testing')->exists('to-delete.txt'));
-    }
+it('returns true for existing directory', function () {
+    Storage::disk('testing')->makeDirectory('exists-folder');
 
-    public function test_delete_removes_directory(): void
-    {
-        Storage::disk('testing')->makeDirectory('to-delete-folder');
-        Storage::disk('testing')->put('to-delete-folder/file.txt', 'content');
+    expect($this->adapter->exists('exists-folder'))->toBeTrue();
+});
 
-        $result = $this->adapter->delete('to-delete-folder');
-
-        $this->assertTrue($result);
-        $this->assertFalse(Storage::disk('testing')->exists('to-delete-folder'));
-    }
-
-    public function test_exists_returns_true_for_existing_file(): void
-    {
-        Storage::disk('testing')->put('exists.txt', 'content');
-
-        $this->assertTrue($this->adapter->exists('exists.txt'));
-    }
-
-    public function test_exists_returns_true_for_existing_directory(): void
-    {
-        Storage::disk('testing')->makeDirectory('exists-folder');
-
-        $this->assertTrue($this->adapter->exists('exists-folder'));
-    }
-
-    public function test_exists_returns_false_for_nonexistent(): void
-    {
-        $this->assertFalse($this->adapter->exists('does-not-exist'));
-    }
-}
+it('returns false for nonexistent path', function () {
+    expect($this->adapter->exists('does-not-exist'))->toBeFalse();
+});

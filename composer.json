@@ -32,15 +32,21 @@
         "spatie/laravel-package-tools": "^1.16"
     },
     "require-dev": {
-        "brianium/paratest": "^7.0",
         "orchestra/testbench": "^9.0|^10.0",
-        "phpunit/phpunit": "^11.0|^12.0"
+        "pestphp/pest": "^3.0",
+        "pestphp/pest-plugin-laravel": "^3.0"
     },
     "scripts": {
-        "test": "vendor/bin/phpunit",
-        "test:parallel": "vendor/bin/paratest",
-        "test:coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-text",
-        "test:coverage:html": "XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-html tests/coverage"
+        "test": "vendor/bin/pest",
+        "test:parallel": "vendor/bin/pest --parallel",
+        "test:coverage": "XDEBUG_MODE=coverage vendor/bin/pest --coverage",
+        "test:coverage:html": "XDEBUG_MODE=coverage vendor/bin/pest --coverage-html tests/coverage"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     },
     "autoload": {
         "psr-4": {
@@ -58,9 +64,6 @@
                 "MWGuerra\\FileManager\\FileManagerServiceProvider"
             ]
         }
-    },
-    "config": {
-        "sort-packages": true
     },
     "minimum-stability": "stable",
     "prefer-stable": true
