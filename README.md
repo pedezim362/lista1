@@ -29,21 +29,37 @@ A file manager package for Laravel and Filament v4 with dual operating modes, S3
 composer require mwguerra/filemanager
 ```
 
-Publish configuration:
+### Quick Install (Recommended)
+
+Run the install command to set up everything automatically:
 
 ```bash
+php artisan filemanager:install
+```
+
+This command will:
+1. Publish Filament assets (including pre-compiled FileManager CSS)
+2. Publish the configuration file
+3. Run database migrations
+
+### Manual Installation
+
+If you prefer manual control, you can run each step separately:
+
+```bash
+# Publish configuration
 php artisan vendor:publish --tag=filemanager-config
-```
 
-Run migrations to create the `file_system_items` table:
-
-```bash
+# Run migrations
 php artisan migrate
+
+# Publish Filament assets (includes FileManager CSS)
+php artisan filament:assets
 ```
 
-This table is required for the File Manager (Database Mode) to track uploaded files and folders.
+### Importing Existing Files
 
-**Already have files in storage?** If you have existing files in your filesystem that you want to import into the File Manager, run:
+If you have existing files in your filesystem that you want to import into the File Manager:
 
 ```bash
 php artisan filemanager:rebuild
@@ -51,58 +67,7 @@ php artisan filemanager:rebuild
 
 This will scan your storage and create database records for all existing files.
 
-### Tailwind CSS Setup
-
-This package uses Tailwind CSS utility classes. Following [Filament's recommended approach](https://filamentphp.com/docs/4.x/advanced/assets#using-tailwind-css-in-plugins), you need to include the package's views in your CSS build.
-
-**Option 1: Automatic Installation (Recommended)**
-
-Run the install command to automatically configure your CSS file:
-
-```bash
-php artisan filemanager:install
-```
-
-This command will add all necessary Tailwind CSS configuration to your `resources/css/app.css` file.
-
-If your CSS file is in a different location, specify the path:
-
-```bash
-php artisan filemanager:install --css-path=resources/css/filament/admin/theme.css
-```
-
-**Option 2: Manual Configuration**
-
-Add these lines to your `resources/css/app.css` (or your custom theme CSS file):
-
-```css
-@import 'tailwindcss';
-
-/* Include the package views for Tailwind to scan */
-@source '../../vendor/mwguerra/filemanager/resources/views/**/*.blade.php';
-
-/* Required for Tailwind v4: Configure dark mode to use Filament's class-based toggle */
-@variant dark (&:where(.dark, .dark *));
-
-@theme {
-    /* Map Filament's primary color custom properties to Tailwind color utilities */
-    --color-primary-50: var(--primary-50);
-    --color-primary-100: var(--primary-100);
-    --color-primary-200: var(--primary-200);
-    --color-primary-300: var(--primary-300);
-    --color-primary-400: var(--primary-400);
-    --color-primary-500: var(--primary-500);
-    --color-primary-600: var(--primary-600);
-    --color-primary-700: var(--primary-700);
-    --color-primary-800: var(--primary-800);
-    --color-primary-900: var(--primary-900);
-    --color-primary-950: var(--primary-950);
-}
-```
-
-> **Important for Tailwind CSS v4**:
-> - The `@variant dark` directive is required because Tailwind v4 defaults to `prefers-color-scheme` media queries, but Filament uses a class-based dark mode (`.dark` class on the HTML element).
-> - The `@theme` block maps Filament's primary color CSS custom properties to Tailwind utilities, enabling classes like `bg-primary-500` to work correctly.
+### Register the Plugin
 
 Register the plugin in your Panel Provider:
 
@@ -202,7 +167,7 @@ FileSystemEmbed::make()
 
 ### filemanager:install
 
-Install FileManager CSS configuration for Tailwind CSS v4:
+Install FileManager with all required assets and configuration:
 
 ```bash
 php artisan filemanager:install [options]
@@ -210,8 +175,14 @@ php artisan filemanager:install [options]
 
 | Option | Description |
 |--------|-------------|
+| `--skip-assets` | Skip publishing Filament assets |
+| `--skip-config` | Skip publishing configuration |
+| `--skip-migrations` | Skip running migrations |
+| `--with-css` | Also configure your app.css for style customization |
 | `--css-path=` | Path to CSS file (default: resources/css/app.css) |
 | `--force` | Overwrite existing configurations |
+
+**Note:** The `--with-css` option is only needed if you want to customize FileManager styles in your project's CSS. The plugin includes pre-compiled CSS with all necessary Tailwind classes.
 
 ### filesystem:list
 
@@ -289,6 +260,45 @@ php artisan filemanager:upload <path> [options]
 | `filemanager-model` | Customizable model |
 | `filemanager-stubs` | Config stubs (filesystems, env) |
 | `filemanager-upload-config` | Upload configuration |
+
+## Development
+
+### Composer Scripts
+
+The package includes several composer scripts for development:
+
+```bash
+# Run tests
+composer test
+
+# Run tests in parallel
+composer test:parallel
+
+# Run tests with coverage
+composer test:coverage
+
+# Build CSS assets
+composer build
+
+# Create a new release (builds, commits, tags, and pushes)
+composer release
+```
+
+### Release Process
+
+To create a new release, run:
+
+```bash
+composer release
+```
+
+This interactive script will:
+1. Build CSS assets (`npm run build`)
+2. Show the last git tag
+3. Prompt for a new version (validates semver format and ensures it's higher)
+4. Commit any uncommitted changes
+5. Push to remote
+6. Create and push the new git tag
 
 ## License
 

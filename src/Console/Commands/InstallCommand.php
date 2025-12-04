@@ -3,6 +3,7 @@
 namespace MWGuerra\FileManager\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 
 class InstallCommand extends Command
@@ -13,6 +14,10 @@ class InstallCommand extends Command
      * @var string
      */
     protected $signature = 'filemanager:install
+                            {--skip-assets : Skip publishing Filament assets}
+                            {--skip-config : Skip publishing configuration}
+                            {--skip-migrations : Skip running migrations}
+                            {--with-css : Also configure your app.css for style customization}
                             {--css-path= : Path to the CSS file (defaults to resources/css/app.css)}
                             {--force : Overwrite existing configurations}';
 
@@ -21,10 +26,10 @@ class InstallCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Install FileManager CSS configuration for Tailwind CSS v4';
+    protected $description = 'Install FileManager package with all required assets and configuration';
 
     /**
-     * The @source directive to add.
+     * The @source directive to add for CSS customization.
      */
     protected string $sourceDirective = "@source '../../vendor/mwguerra/filemanager/resources/views/**/*.blade.php';";
 
@@ -55,92 +60,148 @@ class InstallCommand extends Command
      */
     public function handle(): int
     {
+        $this->info('');
+        $this->info('╔══════════════════════════════════════════════════════════╗');
+        $this->info('║           FileManager Installation                        ║');
+        $this->info('╚══════════════════════════════════════════════════════════╝');
+        $this->newLine();
+
+        $steps = [];
+
+        // Step 1: Publish Filament assets (includes our pre-compiled CSS)
+        if (!$this->option('skip-assets')) {
+            $this->info('Step 1: Publishing Filament assets...');
+            $exitCode = Artisan::call('filament:assets', [], $this->output);
+            if ($exitCode === 0) {
+                $steps[] = ['status' => 'success', 'message' => 'Filament assets published (includes FileManager CSS)'];
+            } else {
+                $steps[] = ['status' => 'warning', 'message' => 'Filament assets publish had issues'];
+            }
+            $this->newLine();
+        }
+
+        // Step 2: Publish configuration
+        if (!$this->option('skip-config')) {
+            $this->info('Step 2: Publishing configuration...');
+            $exitCode = Artisan::call('vendor:publish', [
+                '--tag' => 'filemanager-config',
+                '--force' => $this->option('force'),
+            ], $this->output);
+            if ($exitCode === 0) {
+                $steps[] = ['status' => 'success', 'message' => 'Configuration published to config/filemanager.php'];
+            } else {
+                $steps[] = ['status' => 'warning', 'message' => 'Configuration publish had issues'];
+            }
+            $this->newLine();
+        }
+
+        // Step 3: Run migrations
+        if (!$this->option('skip-migrations')) {
+            $this->info('Step 3: Running migrations...');
+            $exitCode = Artisan::call('migrate', [], $this->output);
+            if ($exitCode === 0) {
+                $steps[] = ['status' => 'success', 'message' => 'Database migrations completed'];
+            } else {
+                $steps[] = ['status' => 'warning', 'message' => 'Migrations had issues'];
+            }
+            $this->newLine();
+        }
+
+        // Step 4 (Optional): Configure app.css for style customization
+        if ($this->option('with-css')) {
+            $this->info('Step 4: Configuring CSS for style customization...');
+            $cssResult = $this->configureCss();
+            $steps = array_merge($steps, $cssResult);
+            $this->newLine();
+        }
+
+        // Summary
+        $this->newLine();
+        $this->info('Installation Summary');
+        $this->info('═══════════════════');
+        foreach ($steps as $step) {
+            $icon = $step['status'] === 'success' ? '✓' : ($step['status'] === 'warning' ? '!' : '✗');
+            $color = $step['status'] === 'success' ? 'green' : ($step['status'] === 'warning' ? 'yellow' : 'red');
+            $this->line("  <fg={$color}>{$icon}</> {$step['message']}");
+        }
+
+        $this->newLine();
+        $this->info('Installation complete!');
+        $this->newLine();
+
+        // Next steps
+        $this->line('<fg=cyan>Next steps:</>');
+        $this->line('  1. Register the plugin in your Panel Provider:');
+        $this->newLine();
+        $this->line('     <fg=gray>use MWGuerra\FileManager\FileManagerPlugin;</>');
+        $this->newLine();
+        $this->line('     <fg=gray>->plugins([</>');
+        $this->line('     <fg=gray>    FileManagerPlugin::make(),</>');
+        $this->line('     <fg=gray>])</>');
+        $this->newLine();
+        $this->line('  2. Access the File Manager at: /admin/file-manager');
+        $this->newLine();
+
+        if ($this->option('with-css')) {
+            $this->line('  3. Rebuild your CSS: npm run build');
+            $this->newLine();
+        }
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Configure the CSS file for style customization.
+     */
+    protected function configureCss(): array
+    {
         $cssPath = $this->option('css-path') ?? resource_path('css/app.css');
         $force = $this->option('force');
-
-        $this->info('FileManager Installation');
-        $this->info('========================');
-        $this->newLine();
+        $steps = [];
 
         // Check if CSS file exists
         if (!File::exists($cssPath)) {
-            $this->error("CSS file not found at: {$cssPath}");
-            $this->line('Please specify the correct path using --css-path option');
-            return self::FAILURE;
+            $steps[] = ['status' => 'error', 'message' => "CSS file not found at: {$cssPath}"];
+            return $steps;
         }
-
-        $this->info("Processing: {$cssPath}");
-        $this->newLine();
 
         // Read the CSS file
         $cssContent = File::get($cssPath);
         $originalContent = $cssContent;
 
-        // Track what was added
-        $added = [];
-        $skipped = [];
-
         // 1. Add @source directive
         $result = $this->addSourceDirective($cssContent, $force);
         $cssContent = $result['content'];
         if ($result['added']) {
-            $added[] = '@source directive for FileManager views';
+            $steps[] = ['status' => 'success', 'message' => 'Added @source directive for FileManager views'];
         } elseif ($result['skipped']) {
-            $skipped[] = '@source directive (already exists)';
+            $steps[] = ['status' => 'info', 'message' => '@source directive already exists'];
         }
 
         // 2. Add @variant dark directive
         $result = $this->addVariantDarkDirective($cssContent, $force);
         $cssContent = $result['content'];
         if ($result['added']) {
-            $added[] = '@variant dark directive for Filament dark mode';
+            $steps[] = ['status' => 'success', 'message' => 'Added @variant dark directive'];
         } elseif ($result['skipped']) {
-            $skipped[] = '@variant dark directive (already exists)';
+            $steps[] = ['status' => 'info', 'message' => '@variant dark directive already exists'];
         }
 
         // 3. Add primary color mappings to @theme block
         $result = $this->addPrimaryColorMappings($cssContent, $force);
         $cssContent = $result['content'];
         if ($result['added']) {
-            $added[] = 'Primary color mappings in @theme block';
+            $steps[] = ['status' => 'success', 'message' => 'Added primary color mappings to @theme'];
         } elseif ($result['skipped']) {
-            $skipped[] = 'Primary color mappings (already exist)';
+            $steps[] = ['status' => 'info', 'message' => 'Primary color mappings already exist'];
         }
 
-        // Check if anything changed
-        if ($cssContent === $originalContent) {
-            $this->info('No changes needed. Your CSS is already configured for FileManager.');
-            return self::SUCCESS;
+        // Write the updated content if changed
+        if ($cssContent !== $originalContent) {
+            File::put($cssPath, $cssContent);
         }
 
-        // Write the updated content
-        File::put($cssPath, $cssContent);
-
-        // Show results
-        if (!empty($added)) {
-            $this->info('Added:');
-            foreach ($added as $item) {
-                $this->line("  ✓ {$item}");
-            }
-            $this->newLine();
-        }
-
-        if (!empty($skipped)) {
-            $this->warn('Skipped (already configured):');
-            foreach ($skipped as $item) {
-                $this->line("  - {$item}");
-            }
-            $this->newLine();
-        }
-
-        $this->info('FileManager CSS configuration installed successfully!');
-        $this->newLine();
-        $this->line('Next steps:');
-        $this->line('  1. Run: npm run build (or npm run dev)');
-        $this->line('  2. Clear cache: php artisan optimize:clear');
-        $this->newLine();
-
-        return self::SUCCESS;
+        return $steps;
     }
 
     /**

@@ -41,7 +41,9 @@
         "test:parallel": "vendor/bin/pest --parallel",
         "test:coverage": "XDEBUG_MODE=coverage vendor/bin/pest --coverage",
         "test:coverage:html": "XDEBUG_MODE=coverage vendor/bin/pest --coverage-html tests/coverage",
-        "test:parallel:coverage": "XDEBUG_MODE=coverage vendor/bin/pest --parallel --coverage"
+        "test:parallel:coverage": "XDEBUG_MODE=coverage vendor/bin/pest --parallel --coverage",
+        "build": "npm run build",
+        "release": "bash scripts/release.sh"
     },
     "config": {
         "sort-packages": true,

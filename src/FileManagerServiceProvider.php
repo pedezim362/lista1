@@ -2,6 +2,8 @@
 
 namespace MWGuerra\FileManager;
 
+use Filament\Support\Assets\Css;
+use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Support\Facades\Blade;
 use Livewire\Livewire;
 use MWGuerra\FileManager\FileTypes\ArchiveFileType;
@@ -88,10 +90,21 @@ class FileManagerServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
+        $this->registerAssets();
         $this->registerFileTypes();
         $this->registerViewComponents();
         $this->registerLivewireComponents();
         $this->registerPublishables();
+    }
+
+    /**
+     * Register plugin assets with Filament.
+     */
+    protected function registerAssets(): void
+    {
+        FilamentAsset::register([
+            Css::make('filemanager', __DIR__ . '/../resources/dist/filemanager.css'),
+        ], 'mwguerra/filemanager');
     }
 
     /**
