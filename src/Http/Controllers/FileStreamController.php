@@ -165,9 +165,8 @@ class FileStreamController extends Controller
                 return false;
             }
 
-            // Get the underlying model for authorization check
-            $model = method_exists($item, 'getModel') ? $item->getModel() : null;
-            return $this->authorizationService->canView($model, $item);
+            // Check authorization with the item (user is resolved from auth())
+            return $this->authorizationService->canView(null, $item);
         }
 
         // For storage mode, check general view permission
