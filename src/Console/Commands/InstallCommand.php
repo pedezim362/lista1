@@ -67,6 +67,11 @@ class InstallCommand extends Command
         $this->newLine();
 
         $steps = [];
+        $hasErrors = false;
+
+        // Determine if CSS configuration should run
+        // If --css-path is provided, it implies --with-css
+        $shouldConfigureCss = $this->option('with-css') || $this->option('css-path');
 
         // Step 1: Publish Filament assets (includes our pre-compiled CSS)
         if (!$this->option('skip-assets')) {
@@ -108,9 +113,17 @@ class InstallCommand extends Command
         }
 
         // Step 4 (Optional): Configure app.css for style customization
-        if ($this->option('with-css')) {
+        if ($shouldConfigureCss) {
             $this->info('Step 4: Configuring CSS for style customization...');
             $cssResult = $this->configureCss();
+
+            // Check if there was an error (like file not found)
+            foreach ($cssResult as $result) {
+                if ($result['status'] === 'error') {
+                    $hasErrors = true;
+                }
+            }
+
             $steps = array_merge($steps, $cssResult);
             $this->newLine();
         }
@@ -120,9 +133,15 @@ class InstallCommand extends Command
         $this->info('Installation Summary');
         $this->info('═══════════════════');
         foreach ($steps as $step) {
-            $icon = $step['status'] === 'success' ? '✓' : ($step['status'] === 'warning' ? '!' : '✗');
-            $color = $step['status'] === 'success' ? 'green' : ($step['status'] === 'warning' ? 'yellow' : 'red');
+            $icon = $step['status'] === 'success' ? '✓' : ($step['status'] === 'warning' ? '!' : ($step['status'] === 'info' ? 'ℹ' : '✗'));
+            $color = $step['status'] === 'success' ? 'green' : ($step['status'] === 'warning' ? 'yellow' : ($step['status'] === 'info' ? 'cyan' : 'red'));
             $this->line("  <fg={$color}>{$icon}</> {$step['message']}");
+        }
+
+        // Return early with failure if there were errors
+        if ($hasErrors) {
+            $this->newLine();
+            return self::FAILURE;
         }
 
         $this->newLine();
@@ -142,7 +161,7 @@ class InstallCommand extends Command
         $this->line('  2. Access the File Manager at: /admin/file-manager');
         $this->newLine();
 
-        if ($this->option('with-css')) {
+        if ($shouldConfigureCss) {
             $this->line('  3. Rebuild your CSS: npm run build');
             $this->newLine();
         }
@@ -158,6 +177,7 @@ class InstallCommand extends Command
         $cssPath = $this->option('css-path') ?? resource_path('css/app.css');
         $force = $this->option('force');
         $steps = [];
+        $changesCount = 0;
 
         // Check if CSS file exists
         if (!File::exists($cssPath)) {
@@ -174,6 +194,7 @@ class InstallCommand extends Command
         $cssContent = $result['content'];
         if ($result['added']) {
             $steps[] = ['status' => 'success', 'message' => 'Added @source directive for FileManager views'];
+            $changesCount++;
         } elseif ($result['skipped']) {
             $steps[] = ['status' => 'info', 'message' => '@source directive already exists'];
         }
@@ -183,6 +204,7 @@ class InstallCommand extends Command
         $cssContent = $result['content'];
         if ($result['added']) {
             $steps[] = ['status' => 'success', 'message' => 'Added @variant dark directive'];
+            $changesCount++;
         } elseif ($result['skipped']) {
             $steps[] = ['status' => 'info', 'message' => '@variant dark directive already exists'];
         }
@@ -191,7 +213,8 @@ class InstallCommand extends Command
         $result = $this->addPrimaryColorMappings($cssContent, $force);
         $cssContent = $result['content'];
         if ($result['added']) {
-            $steps[] = ['status' => 'success', 'message' => 'Added primary color mappings to @theme'];
+            $steps[] = ['status' => 'success', 'message' => 'Primary color mappings added to @theme'];
+            $changesCount++;
         } elseif ($result['skipped']) {
             $steps[] = ['status' => 'info', 'message' => 'Primary color mappings already exist'];
         }
@@ -199,6 +222,11 @@ class InstallCommand extends Command
         // Write the updated content if changed
         if ($cssContent !== $originalContent) {
             File::put($cssPath, $cssContent);
+        }
+
+        // If no changes were made, replace all info messages with a single summary
+        if ($changesCount === 0) {
+            $steps = [['status' => 'info', 'message' => 'No changes needed - CSS already configured']];
         }
 
         return $steps;
