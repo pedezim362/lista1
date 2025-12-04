@@ -43,6 +43,49 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | File Streaming Settings
+    |--------------------------------------------------------------------------
+    |
+    | Configure how files are served for preview and download.
+    |
+    | The file manager uses different URL strategies based on the disk:
+    | - S3-compatible disks: Uses temporaryUrl() for pre-signed URLs
+    | - Public disk: Uses direct Storage::url() (works via symlink)
+    | - Local/other disks: Uses signed routes to a streaming controller
+    |
+    */
+    'streaming' => [
+        // URL generation strategy:
+        // - 'auto': Automatically detect best strategy per disk (recommended)
+        // - 'signed_route': Always use signed routes to streaming controller
+        // - 'direct': Always use Storage::url() (only works for public disk)
+        'url_strategy' => env('FILEMANAGER_URL_STRATEGY', 'auto'),
+
+        // URL expiration in minutes (for signed URLs and S3 temporary URLs)
+        'url_expiration' => env('FILEMANAGER_URL_EXPIRATION', 60),
+
+        // Route prefix for streaming endpoints
+        'route_prefix' => env('FILEMANAGER_ROUTE_PREFIX', 'filemanager'),
+
+        // Middleware applied to streaming routes
+        'middleware' => ['web'],
+
+        // Disks that should always use signed routes (even if public)
+        // Useful if you want extra security for certain disks
+        'force_signed_disks' => [],
+
+        // Disks that are publicly accessible via URL (override auto-detection)
+        // Files on these disks can be accessed directly without streaming
+        'public_disks' => ['public'],
+
+        // Disks that don't require authentication for streaming access
+        // Use with caution - files on these disks can be accessed without login
+        // Note: Signed URLs are still required, this just skips the auth check
+        'public_access_disks' => [],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | File System Item Model (Database Mode)
     |--------------------------------------------------------------------------
     |

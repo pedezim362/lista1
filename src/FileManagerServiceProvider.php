@@ -24,6 +24,7 @@ use MWGuerra\FileManager\Console\Commands\RebuildFileSystemItemsCommand;
 use MWGuerra\FileManager\Console\Commands\UploadFolderCommand;
 use MWGuerra\FileManager\Services\AuthorizationService;
 use MWGuerra\FileManager\Services\FileSecurityService;
+use MWGuerra\FileManager\Services\FileUrlService;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -81,6 +82,11 @@ class FileManagerServiceProvider extends PackageServiceProvider
             return new AuthorizationService();
         });
 
+        // Register FileUrlService as a singleton
+        $this->app->singleton(FileUrlService::class, function () {
+            return new FileUrlService();
+        });
+
         // Register the policy class
         $this->app->singleton(FileSystemItemPolicy::class, function () {
             $policyClass = config('filemanager.authorization.policy', FileSystemItemPolicy::class);
@@ -95,6 +101,15 @@ class FileManagerServiceProvider extends PackageServiceProvider
         $this->registerViewComponents();
         $this->registerLivewireComponents();
         $this->registerPublishables();
+        $this->registerRoutes();
+    }
+
+    /**
+     * Register package routes for file streaming.
+     */
+    protected function registerRoutes(): void
+    {
+        $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
     }
 
     /**

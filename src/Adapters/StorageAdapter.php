@@ -616,42 +616,29 @@ class StorageAdapter implements FileManagerAdapterInterface
         $path = $this->normalizePath($identifier);
 
         try {
-            $storage = $this->storage();
-
-            // Check if the disk driver supports temporary URLs (S3, MinIO, etc.)
-            // These require signed URLs for private buckets
-            if ($this->supportsTemporaryUrls()) {
-                $expiration = config('filemanager.storage_mode.url_expiration', 60);
-                return $storage->temporaryUrl($path, now()->addMinutes($expiration));
-            }
-
-            return $storage->url($path);
-        } catch (\Exception $e) {
-            // Fall back to regular URL if temporaryUrl fails
-            try {
-                return $this->storage()->url($path);
-            } catch (\Exception $e) {
+            // Check if file exists before generating URL
+            if (!$this->storage()->exists($path)) {
                 return null;
             }
+
+            $urlService = app(\MWGuerra\FileManager\Services\FileUrlService::class);
+            $expiration = config('filemanager.streaming.url_expiration', 60);
+
+            return $urlService->getPreviewUrl(
+                disk: $this->disk,
+                path: $path,
+                mode: 'storage',
+                identifier: $identifier,
+                expirationMinutes: $expiration
+            );
+        } catch (\Exception $e) {
+            Log::warning('FileManager: Failed to generate URL for file', [
+                'disk' => $this->disk,
+                'path' => $path,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
         }
-    }
-
-    /**
-     * Check if the current disk supports temporary URLs.
-     * S3-compatible disks (S3, MinIO, DigitalOcean Spaces, etc.) support this.
-     */
-    protected function supportsTemporaryUrls(): bool
-    {
-        $diskConfig = config("filesystems.disks.{$this->disk}");
-
-        if (!$diskConfig) {
-            return false;
-        }
-
-        $driver = $diskConfig['driver'] ?? 'local';
-
-        // S3-compatible drivers support temporary URLs
-        return in_array($driver, ['s3']);
     }
 
     public function getContents(string $identifier, int $maxSize = 1048576): ?string
