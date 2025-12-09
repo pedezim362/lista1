@@ -13,6 +13,7 @@ use MWGuerra\FileManager\Adapters\AdapterFactory;
 use MWGuerra\FileManager\Contracts\FileManagerAdapterInterface;
 use MWGuerra\FileManager\Contracts\FileManagerItemInterface;
 use MWGuerra\FileManager\Contracts\FileTypeContract;
+use MWGuerra\FileManager\FileManagerPlugin;
 use MWGuerra\FileManager\FileTypeRegistry;
 use MWGuerra\FileManager\Services\AuthorizationService;
 
@@ -24,27 +25,56 @@ class FileManager extends Page
 
     public static function getNavigationIcon(): string|BackedEnum|Htmlable|null
     {
-        return config('filemanager.file_manager.navigation.icon', 'heroicon-o-folder');
+        return FileManagerPlugin::current()?->getFileManagerNavigationIcon()
+            ?? config('filemanager.file_manager.navigation.icon', 'heroicon-o-folder');
     }
 
     public function getTitle(): string|Htmlable
     {
-        return config('filemanager.file_manager.navigation.label', 'File Manager');
+        return FileManagerPlugin::current()?->getFileManagerNavigationLabel()
+            ?? config('filemanager.file_manager.navigation.label', 'File Manager');
     }
 
     public static function getNavigationLabel(): string
     {
-        return config('filemanager.file_manager.navigation.label', 'File Manager');
+        return FileManagerPlugin::current()?->getFileManagerNavigationLabel()
+            ?? config('filemanager.file_manager.navigation.label', 'File Manager');
     }
 
     public static function getNavigationSort(): ?int
     {
-        return config('filemanager.file_manager.navigation.sort', 1);
+        return FileManagerPlugin::current()?->getFileManagerNavigationSort()
+            ?? config('filemanager.file_manager.navigation.sort', 1);
     }
 
     public static function getNavigationGroup(): ?string
     {
-        return config('filemanager.file_manager.navigation.group', 'FileManager');
+        return FileManagerPlugin::current()?->getFileManagerNavigationGroup()
+            ?? config('filemanager.file_manager.navigation.group', 'FileManager');
+    }
+
+    /**
+     * Check if the page sidebar should be shown.
+     */
+    public function shouldShowPageSidebar(): bool
+    {
+        return FileManagerPlugin::current()?->isFileManagerPageSidebarEnabled() ?? true;
+    }
+
+    /**
+     * Get the sidebar root label.
+     */
+    public function getSidebarRootLabel(): string
+    {
+        return FileManagerPlugin::current()?->getFileManagerSidebarRootLabel() ?? 'Root';
+    }
+
+    /**
+     * Get the sidebar heading.
+     */
+    public function getSidebarHeading(): string
+    {
+        return FileManagerPlugin::current()?->getFileManagerSidebarHeading() ?? 'Folders';
     }
 
     /**

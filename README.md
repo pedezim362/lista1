@@ -128,6 +128,157 @@ FileManagerPlugin::make()
     ])
 ```
 
+### Fluent Configuration API
+
+The plugin provides a fluent API for configuring all aspects of the file manager directly in your Panel Provider. This approach is preferred over config file settings as it keeps your panel configuration in one place.
+
+#### Panel Sidebar
+
+Add a folder tree sidebar to your Filament panel navigation:
+
+```php
+use Filament\View\PanelsRenderHook;
+
+FileManagerPlugin::make()
+    // Enable panel sidebar (appears in Filament navigation)
+    ->panelSidebar()
+    ->panelSidebarRootLabel('My Files')
+    ->panelSidebarHeading('Folders')
+
+    // Or use the short alias
+    ->sidebar()
+
+    // Customize render hook location
+    ->panelSidebar(
+        enabled: true,
+        renderHook: PanelsRenderHook::SIDEBAR_NAV_END,
+        scopes: ['admin']
+    )
+
+    // Disable panel sidebar
+    ->withoutPanelSidebar()
+```
+
+#### File Manager Page Configuration
+
+Configure the database mode File Manager page:
+
+```php
+FileManagerPlugin::make()
+    // Enable/disable the page
+    ->fileManager(true)
+    ->withoutFileManager()  // Disable
+
+    // Configure page sidebar (folder tree on the page itself)
+    ->fileManagerPageSidebar(true)
+    ->fileManagerSidebarRootLabel('Root')
+    ->fileManagerSidebarHeading('Folders')
+
+    // Configure navigation
+    ->fileManagerNavigation(
+        icon: 'heroicon-o-folder',
+        label: 'File Manager',
+        sort: 1,
+        group: 'Content'
+    )
+```
+
+#### File System Page Configuration
+
+Configure the storage mode File System page (read-only):
+
+```php
+FileManagerPlugin::make()
+    // Enable/disable the page
+    ->fileSystem(true)
+    ->withoutFileSystem()  // Disable
+
+    // Configure page sidebar
+    ->fileSystemPageSidebar(true)
+    ->fileSystemSidebarRootLabel('Root')
+    ->fileSystemSidebarHeading('Storage')
+
+    // Configure navigation
+    ->fileSystemNavigation(
+        icon: 'heroicon-o-server-stack',
+        label: 'File System',
+        sort: 2,
+        group: 'Content'
+    )
+```
+
+#### Schema Example Page
+
+Enable/disable the demo page for testing embedded components:
+
+```php
+FileManagerPlugin::make()
+    ->schemaExample(true)
+    ->withoutSchemaExample()  // Disable
+```
+
+#### Complete Configuration Example
+
+```php
+use MWGuerra\FileManager\FileManagerPlugin;
+use Filament\View\PanelsRenderHook;
+
+public function panel(Panel $panel): Panel
+{
+    return $panel
+        ->plugins([
+            FileManagerPlugin::make()
+                // Panel sidebar (in Filament navigation)
+                ->panelSidebar()
+                ->panelSidebarRootLabel('All Files')
+                ->panelSidebarHeading('Folders')
+
+                // File Manager page (database mode)
+                ->fileManager()
+                ->fileManagerPageSidebar(true)
+                ->fileManagerSidebarRootLabel('Root')
+                ->fileManagerSidebarHeading('Folders')
+                ->fileManagerNavigation(
+                    icon: 'heroicon-o-folder',
+                    label: 'Files',
+                    sort: 1,
+                    group: 'Content'
+                )
+
+                // File System page (storage mode, read-only)
+                ->fileSystem()
+                ->fileSystemPageSidebar(true)
+                ->fileSystemSidebarRootLabel('Storage Root')
+                ->fileSystemSidebarHeading('Directories')
+                ->fileSystemNavigation(
+                    icon: 'heroicon-o-server-stack',
+                    label: 'Storage',
+                    sort: 2,
+                    group: 'Content'
+                )
+
+                // Disable demo page
+                ->withoutSchemaExample(),
+        ]);
+}
+```
+
+#### Configuration Precedence
+
+Configuration values follow this precedence (highest to lowest):
+
+1. **Fluent API** - Values set via the plugin methods
+2. **Config file** - Values from `config/filemanager.php`
+3. **Defaults** - Built-in default values
+
+For sidebar labels, page-specific settings fall back to panel sidebar settings:
+
+```php
+FileManagerPlugin::make()
+    ->panelSidebarRootLabel('Root')  // Default for all sidebars
+    ->fileManagerSidebarRootLabel('Files Root')  // Override for File Manager only
+```
+
 | Page Class | URL | Description |
 |------------|-----|-------------|
 | `FileManager::class` | `/admin/file-manager` | Database mode with full CRUD |

@@ -10,6 +10,7 @@ use Livewire\Component;
 use MWGuerra\FileManager\Adapters\AdapterFactory;
 use MWGuerra\FileManager\Contracts\FileManagerAdapterInterface;
 use MWGuerra\FileManager\Contracts\FileManagerItemInterface;
+use MWGuerra\FileManager\FileManagerPlugin;
 use MWGuerra\FileManager\Services\AuthorizationService;
 
 /**
@@ -406,19 +407,23 @@ class FileManagerSidebar extends Component
     }
 
     /**
-     * Get the root folder label from config.
+     * Get the root folder label from plugin or config.
      */
     public function getRootLabelProperty(): string
     {
-        return config('filemanager.sidebar.root_label') ?? 'Root';
+        return FileManagerPlugin::current()?->getPanelSidebarRootLabel()
+            ?? config('filemanager.sidebar.root_label')
+            ?? 'Root';
     }
 
     /**
-     * Get sidebar heading from config.
+     * Get sidebar heading from plugin or config.
      */
     public function getHeadingProperty(): string
     {
-        return config('filemanager.sidebar.heading') ?? 'Folders';
+        return FileManagerPlugin::current()?->getPanelSidebarHeading()
+            ?? config('filemanager.sidebar.heading')
+            ?? 'Folders';
     }
 
     public function render(): View

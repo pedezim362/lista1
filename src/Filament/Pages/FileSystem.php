@@ -6,6 +6,7 @@ use BackedEnum;
 use Illuminate\Contracts\Support\Htmlable;
 use MWGuerra\FileManager\Adapters\AdapterFactory;
 use MWGuerra\FileManager\Contracts\FileManagerAdapterInterface;
+use MWGuerra\FileManager\FileManagerPlugin;
 
 /**
  * File System page - shows files directly from storage disk (read-only).
@@ -21,33 +22,62 @@ class FileSystem extends FileManager
 
     public static function getNavigationIcon(): string|BackedEnum|Htmlable|null
     {
-        return config('filemanager.file_system.navigation.icon', 'heroicon-o-server-stack');
+        return FileManagerPlugin::current()?->getFileSystemNavigationIcon()
+            ?? config('filemanager.file_system.navigation.icon', 'heroicon-o-server-stack');
     }
 
     public function getTitle(): string|Htmlable
     {
-        return config('filemanager.file_system.navigation.label', 'File System');
+        return FileManagerPlugin::current()?->getFileSystemNavigationLabel()
+            ?? config('filemanager.file_system.navigation.label', 'File System');
     }
 
     public static function getNavigationLabel(): string
     {
-        return config('filemanager.file_system.navigation.label', 'File System');
+        return FileManagerPlugin::current()?->getFileSystemNavigationLabel()
+            ?? config('filemanager.file_system.navigation.label', 'File System');
     }
 
     public static function getNavigationSort(): ?int
     {
-        return config('filemanager.file_system.navigation.sort', 2);
+        return FileManagerPlugin::current()?->getFileSystemNavigationSort()
+            ?? config('filemanager.file_system.navigation.sort', 2);
     }
 
     public static function getNavigationGroup(): ?string
     {
-        return config('filemanager.file_system.navigation.group')
+        return FileManagerPlugin::current()?->getFileSystemNavigationGroup()
+            ?? config('filemanager.file_system.navigation.group')
             ?? config('filemanager.file_manager.navigation.group', 'FileManager');
     }
 
     public static function getSlug(?\Filament\Panel $panel = null): string
     {
         return 'file-system';
+    }
+
+    /**
+     * Check if the page sidebar should be shown.
+     */
+    public function shouldShowPageSidebar(): bool
+    {
+        return FileManagerPlugin::current()?->isFileSystemPageSidebarEnabled() ?? true;
+    }
+
+    /**
+     * Get the sidebar root label.
+     */
+    public function getSidebarRootLabel(): string
+    {
+        return FileManagerPlugin::current()?->getFileSystemSidebarRootLabel() ?? 'Root';
+    }
+
+    /**
+     * Get the sidebar heading.
+     */
+    public function getSidebarHeading(): string
+    {
+        return FileManagerPlugin::current()?->getFileSystemSidebarHeading() ?? 'Folders';
     }
 
     /**
