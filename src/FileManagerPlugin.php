@@ -10,6 +10,7 @@ use Filament\Support\Facades\FilamentView;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Contracts\View\View;
+use MWGuerra\FileManager\Filament\Pages\EmbedConfigTest;
 use MWGuerra\FileManager\Filament\Pages\FileManager;
 use MWGuerra\FileManager\Filament\Pages\FileSystem;
 use MWGuerra\FileManager\Filament\Pages\SchemaExample;
@@ -39,6 +40,7 @@ class FileManagerPlugin implements Plugin
         FileManager::class,
         FileSystem::class,
         SchemaExample::class,
+        EmbedConfigTest::class,
     ];
 
     /**
@@ -93,6 +95,12 @@ class FileManagerPlugin implements Plugin
     protected bool $schemaExampleEnabled = true;
 
     // =========================================================================
+    // Embed Config Test Page Configuration (for E2E testing)
+    // =========================================================================
+
+    protected bool $embedConfigTestEnabled = true;
+
+    // =========================================================================
     // Plugin Interface Methods
     // =========================================================================
 
@@ -130,6 +138,11 @@ class FileManagerPlugin implements Plugin
 
             if ($this->schemaExampleEnabled && config('filemanager.schema_example.enabled', true)) {
                 $pages[] = SchemaExample::class;
+            }
+
+            // Register test page only in local/testing environments
+            if ($this->embedConfigTestEnabled && app()->environment('testing', 'local')) {
+                $pages[] = EmbedConfigTest::class;
             }
 
             $resources[] = FileSystemItemResource::class;

@@ -2,12 +2,12 @@
 
 namespace MWGuerra\FileManager\Models;
 
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use MWGuerra\FileManager\Contracts\FileSystemItemInterface;
-use MWGuerra\FileManager\Database\Factories\FileSystemItemFactory;
 use MWGuerra\FileManager\Enums\FileSystemItemType;
 use MWGuerra\FileManager\Enums\FileType;
 
@@ -36,10 +36,19 @@ class FileSystemItem extends Model implements FileSystemItemInterface
 
     /**
      * Create a new factory instance for the model.
+     *
+     * Override this method in your application's model to use a custom factory.
      */
-    protected static function newFactory(): FileSystemItemFactory
+    protected static function newFactory(): Factory
     {
-        return FileSystemItemFactory::new();
+        // Try to load the package factory - applications should override this
+        $factoryClass = 'MWGuerra\\FileManager\\Database\\Factories\\FileSystemItemFactory';
+        if (class_exists($factoryClass)) {
+            return $factoryClass::new();
+        }
+
+        // Fallback: let Laravel's default factory resolution handle it
+        return Factory::factoryForModel(static::class);
     }
 
     /**
