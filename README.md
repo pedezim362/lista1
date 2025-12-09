@@ -160,6 +160,72 @@ FileSystemEmbed::make()
     ->target('media'),
 ```
 
+### Embed Component Configuration
+
+Both embed components support fluent configuration for customizing their appearance:
+
+```php
+use MWGuerra\FileManager\Schemas\Components\FileManagerEmbed;
+use MWGuerra\FileManager\Schemas\Components\FileSystemEmbed;
+
+FileManagerEmbed::make()
+    // Layout options
+    ->height('500px')
+    ->defaultViewMode('grid')  // 'grid' or 'list'
+
+    // Storage options
+    ->disk('s3')
+    ->target('uploads')
+    ->initialFolder('documents')
+
+    // Sidebar configuration
+    ->showSidebar()  // or ->hideSidebar()
+    ->sidebarRootLabel('My Files')
+    ->sidebarHeading('Folders')
+    // Or use the combined method:
+    ->sidebar(show: true, rootLabel: 'My Files', heading: 'Folders')
+
+    // Breadcrumbs configuration
+    ->breadcrumbsRootLabel('Home')
+
+    // Header configuration
+    ->showHeader()  // or ->hideHeader()
+
+    // Compact mode (no header, no sidebar)
+    ->compact(),
+
+// All options also work with FileSystemEmbed
+FileSystemEmbed::make()
+    ->height('400px')
+    ->disk('public')
+    ->sidebarRootLabel('Storage')
+    ->breadcrumbsRootLabel('Root')
+    ->hideSidebar(),
+```
+
+| Method | Description |
+|--------|-------------|
+| `height(string)` | Set component height (default: '500px') |
+| `defaultViewMode(string)` | Set initial view mode: 'grid' or 'list' |
+| `disk(?string)` | Storage disk to use |
+| `target(?string)` | Target directory within the disk |
+| `initialFolder(?string)` | Initial folder to navigate to on load |
+| `showSidebar()` / `hideSidebar()` | Show or hide the folder tree sidebar |
+| `sidebarRootLabel(string)` | Label for root folder in sidebar (default: 'Root') |
+| `sidebarHeading(string)` | Heading text for sidebar (default: 'Folders') |
+| `sidebar(bool, ?string, ?string)` | Configure all sidebar options at once |
+| `breadcrumbsRootLabel(string)` | Label for root in breadcrumbs (default: 'Root') |
+| `showHeader()` / `hideHeader()` | Show or hide header with controls |
+| `compact()` | Enable compact mode (no header, no sidebar) |
+
+All configuration methods support `Closure` values for dynamic configuration:
+
+```php
+FileManagerEmbed::make()
+    ->sidebarRootLabel(fn () => auth()->user()->name . "'s Files")
+    ->breadcrumbsRootLabel(fn () => __('file-manager.home')),
+```
+
 ## Fluent Configuration API
 
 The plugin provides a fluent API for configuring all aspects of the file manager directly in your Panel Provider. This approach is preferred over config file settings as it keeps your panel configuration in one place.
