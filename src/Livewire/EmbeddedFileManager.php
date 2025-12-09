@@ -5,6 +5,7 @@ namespace MWGuerra\FileManager\Livewire;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use MWGuerra\FileManager\Adapters\AdapterFactory;
@@ -78,6 +79,16 @@ class EmbeddedFileManager extends Component
         if ($initialFolder) {
             $this->expandedFolders[] = $initialFolder;
         }
+    }
+
+    /**
+     * Listen for folder change events from other components (like panel sidebar).
+     * This enables bi-directional sync between the embed and the panel sidebar.
+     */
+    #[On('filemanager-folder-changed')]
+    public function onFolderChanged(): void
+    {
+        // The component will automatically re-render with fresh data
     }
 
     protected function getAdapter(): FileManagerAdapterInterface
@@ -336,6 +347,9 @@ class EmbeddedFileManager extends Component
         $this->newFolderName = '';
         Notification::make()->title('Folder created successfully')->success()->send();
         $this->dispatch('close-modal', id: 'embedded-create-folder-modal-' . $this->getId());
+
+        // Dispatch event to update other components (like panel sidebar)
+        $this->dispatch('filemanager-folder-changed');
     }
 
     public function deleteSelected(): void
@@ -374,6 +388,9 @@ class EmbeddedFileManager extends Component
 
         $this->selectedItems = [];
         Notification::make()->title($count . ' item(s) deleted')->success()->send();
+
+        // Dispatch event to update other components (like panel sidebar)
+        $this->dispatch('filemanager-folder-changed');
     }
 
     public function deleteItem(string $itemId): void
@@ -400,6 +417,9 @@ class EmbeddedFileManager extends Component
 
             $this->selectedItems = array_values(array_diff($this->selectedItems, [$itemId]));
             Notification::make()->title('Item deleted')->success()->send();
+
+            // Dispatch event to update other components (like panel sidebar)
+            $this->dispatch('filemanager-folder-changed');
         } else {
             Notification::make()->title(is_string($result) ? $result : 'Failed to delete item')->danger()->send();
         }
@@ -481,6 +501,11 @@ class EmbeddedFileManager extends Component
         $this->moveTargetPath = null;
         $this->selectedItems = [];
         $this->dispatch('close-modal', id: 'embedded-move-modal-' . $this->getId());
+
+        // Dispatch event to update other components (like panel sidebar)
+        if ($successCount > 0) {
+            $this->dispatch('filemanager-folder-changed');
+        }
     }
 
     public function openCreateSubfolderDialog(string $parentPath): void
@@ -524,6 +549,9 @@ class EmbeddedFileManager extends Component
         $this->subfolderParentPath = null;
         Notification::make()->title('Subfolder created successfully')->success()->send();
         $this->dispatch('close-modal', id: 'embedded-subfolder-modal-' . $this->getId());
+
+        // Dispatch event to update other components (like panel sidebar)
+        $this->dispatch('filemanager-folder-changed');
     }
 
     public function openRenameDialog(string $itemId): void
@@ -567,6 +595,9 @@ class EmbeddedFileManager extends Component
             $this->renameItemName = '';
             Notification::make()->title('Item renamed successfully')->success()->send();
             $this->dispatch('close-modal', id: 'embedded-rename-modal-' . $this->getId());
+
+            // Dispatch event to update other components (like panel sidebar)
+            $this->dispatch('filemanager-folder-changed');
         } else {
             Notification::make()->title(is_string($result) ? $result : 'Failed to rename item')->danger()->send();
         }
@@ -672,6 +703,9 @@ class EmbeddedFileManager extends Component
             $this->itemToMoveId = null;
             $this->moveTargetPath = null;
             $this->dispatch('close-modal', id: 'embedded-move-modal-' . $this->getId());
+
+            // Dispatch event to update other components (like panel sidebar)
+            $this->dispatch('filemanager-folder-changed');
         } else {
             Notification::make()->title(is_string($result) ? $result : 'Failed to move item')->danger()->send();
         }
