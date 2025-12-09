@@ -7,6 +7,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Collection;
+use Livewire\Attributes\On;
 use Livewire\WithFileUploads;
 use MWGuerra\FileManager\Adapters\AdapterFactory;
 use MWGuerra\FileManager\Contracts\FileManagerAdapterInterface;
@@ -168,6 +169,15 @@ class FileManager extends Page
         if ($this->currentPath !== null) {
             $this->expandParentFolders($this->currentPath);
         }
+    }
+
+    /**
+     * Listen for folder change events from other components (like panel sidebar).
+     */
+    #[On('filemanager-folder-changed')]
+    public function onFolderChanged(): void
+    {
+        // The component will automatically re-render with fresh data
     }
 
     /**
