@@ -63,6 +63,7 @@ class FileManager extends Page
     }
 
     // State properties - using string identifiers for flexibility
+    #[\Livewire\Attributes\Url(as: 'path')]
     public ?string $currentPath = null;
     public string $viewMode = 'grid';
     public array $selectedItems = [];
@@ -162,6 +163,37 @@ class FileManager extends Page
     public function mount(): void
     {
         $this->expandedFolders = ['root'];
+
+        // If navigating to a specific folder, expand its parent folders
+        if ($this->currentPath !== null) {
+            $this->expandParentFolders($this->currentPath);
+        }
+    }
+
+    /**
+     * Expand all parent folders of the given folder ID.
+     */
+    protected function expandParentFolders(?string $folderId): void
+    {
+        if ($folderId === null) {
+            return;
+        }
+
+        $item = $this->getAdapter()->getItem($folderId);
+        if (!$item) {
+            return;
+        }
+
+        // Add the current folder to expanded
+        if (!in_array($folderId, $this->expandedFolders)) {
+            $this->expandedFolders[] = $folderId;
+        }
+
+        // Recursively expand parent folders
+        $parentPath = $item->getParentPath();
+        if ($parentPath !== null) {
+            $this->expandParentFolders($parentPath);
+        }
     }
 
     /**
@@ -457,6 +489,9 @@ class FileManager extends Page
             ->send();
 
         $this->dispatch('close-modal', id: 'create-folder-modal');
+
+        // Dispatch event to update other components (like panel sidebar)
+        $this->dispatch('filemanager-folder-changed');
     }
 
     /**
@@ -483,6 +518,9 @@ class FileManager extends Page
             ->title($count . ' item(s) deleted')
             ->success()
             ->send();
+
+        // Dispatch event to update other components (like panel sidebar)
+        $this->dispatch('filemanager-folder-changed');
     }
 
     /**
@@ -518,6 +556,9 @@ class FileManager extends Page
                 ->title('Item deleted')
                 ->success()
                 ->send();
+
+            // Dispatch event to update other components (like panel sidebar)
+            $this->dispatch('filemanager-folder-changed');
         } else {
             Notification::make()
                 ->title(is_string($result) ? $result : 'Failed to delete item')
@@ -604,6 +645,11 @@ class FileManager extends Page
         $this->moveTargetPath = null;
         $this->selectedItems = [];
         $this->dispatch('close-modal', id: 'move-item-modal');
+
+        // Dispatch event to update other components (like panel sidebar)
+        if ($successCount > 0) {
+            $this->dispatch('filemanager-folder-changed');
+        }
     }
 
     /**
@@ -657,6 +703,9 @@ class FileManager extends Page
             ->send();
 
         $this->dispatch('close-modal', id: 'create-subfolder-modal');
+
+        // Dispatch event to update other components (like panel sidebar)
+        $this->dispatch('filemanager-folder-changed');
     }
 
     /**
@@ -718,6 +767,9 @@ class FileManager extends Page
                 ->send();
 
             $this->dispatch('close-modal', id: 'rename-item-modal');
+
+            // Dispatch event to update other components (like panel sidebar)
+            $this->dispatch('filemanager-folder-changed');
         } else {
             Notification::make()
                 ->title(is_string($result) ? $result : 'Failed to rename item')
@@ -846,6 +898,9 @@ class FileManager extends Page
             $this->itemToMoveId = null;
             $this->moveTargetPath = null;
             $this->dispatch('close-modal', id: 'move-item-modal');
+
+            // Dispatch event to update other components (like panel sidebar)
+            $this->dispatch('filemanager-folder-changed');
         } else {
             Notification::make()
                 ->title(is_string($result) ? $result : 'Failed to move item')

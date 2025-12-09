@@ -105,8 +105,9 @@
         {{-- Main Content Area --}}
         <div class="flex flex-1 overflow-hidden">
             {{-- Sidebar --}}
+            @if(config('filemanager.sidebar.show_in_file_manager', true))
             <aside class="w-64 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4 overflow-y-auto">
-                <h2 class="px-2 text-lg font-semibold text-gray-900 dark:text-white mb-4">Folders</h2>
+                <h2 class="px-2 text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ config('filemanager.sidebar.heading', 'Folders') }}</h2>
 
                 {{-- Root Folder --}}
                 <nav class="space-y-1">
@@ -122,7 +123,7 @@
                             class="flex items-center gap-2 flex-1 min-w-0 text-left"
                         >
                             <x-heroicon-o-folder class="w-4 h-4 text-primary-500 shrink-0" />
-                            <span class="truncate text-gray-700 dark:text-gray-300">Root</span>
+                            <span class="truncate text-gray-700 dark:text-gray-300">{{ config('filemanager.sidebar.root_label', 'Root') }}</span>
                         </button>
 
                         {{-- Right side container for badge/actions (fixed width to prevent layout shift) --}}
@@ -161,6 +162,7 @@
                     @include('filemanager::filament.pages.partials.folder-tree', ['folders' => $this->folderTree, 'level' => 1, 'currentPath' => $currentPath, 'isReadOnly' => $this->isReadOnly()])
                 </nav>
             </aside>
+            @endif
 
             {{-- Content Area --}}
             <main class="flex-1 overflow-y-auto bg-white dark:bg-gray-900 p-6">

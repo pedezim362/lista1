@@ -16,6 +16,7 @@ use MWGuerra\FileManager\FileTypes\TextFileType;
 use MWGuerra\FileManager\FileTypes\VideoFileType;
 use MWGuerra\FileManager\Livewire\EmbeddedFileManager;
 use MWGuerra\FileManager\Livewire\EmbeddedFileSystem;
+use MWGuerra\FileManager\Livewire\FileManagerSidebar;
 use MWGuerra\FileManager\Policies\FileSystemItemPolicy;
 use MWGuerra\FileManager\Console\Commands\FileSystemListCommand;
 use MWGuerra\FileManager\Console\Commands\InstallCommand;
@@ -164,6 +165,7 @@ class FileManagerServiceProvider extends PackageServiceProvider
     {
         Livewire::component('embedded-file-manager', EmbeddedFileManager::class);
         Livewire::component('embedded-file-system', EmbeddedFileSystem::class);
+        Livewire::component('filemanager-sidebar', FileManagerSidebar::class);
     }
 
     /**

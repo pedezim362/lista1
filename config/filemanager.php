@@ -283,6 +283,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Panel Sidebar Settings
+    |--------------------------------------------------------------------------
+    |
+    | Configure the file manager folder tree that can be rendered in the
+    | Filament panel sidebar using render hooks.
+    |
+    | - enabled: Enable/disable the sidebar folder tree
+    | - root_label: Label for the root folder (e.g., "Root", "/", "Home")
+    | - heading: Heading text shown above the folder tree
+    | - show_in_file_manager: Show the sidebar within the file manager page
+    |
+    */
+    'sidebar' => [
+        'enabled' => true,
+        'root_label' => env('FILEMANAGER_SIDEBAR_ROOT_LABEL', 'Root'),
+        'heading' => env('FILEMANAGER_SIDEBAR_HEADING', 'Folders'),
+        'show_in_file_manager' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | File Types
     |--------------------------------------------------------------------------
     |
