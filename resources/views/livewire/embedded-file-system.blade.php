@@ -11,17 +11,18 @@
                     @if($index > 0)
                         <x-heroicon-m-chevron-right class="w-4 h-4 text-gray-400" />
                     @endif
+                    @php
+                        $crumbName = $index === 0 ? $breadcrumbsRootLabel : $crumb['name'];
+                        $crumbId = $crumb['id'];
+                    @endphp
                     @if($index === count($this->breadcrumbs) - 1)
-                        <span class="font-medium text-gray-900 dark:text-white">{{ $crumb['name'] }}</span>
+                        <span class="font-medium text-gray-900 dark:text-white">{{ $crumbName }}</span>
                     @else
-                        @php
-                            $crumbId = $crumb['id'];
-                        @endphp
                         <button
                             x-on:click="$wire.navigateTo({{ json_encode($crumbId) }})"
                             class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
                         >
-                            {{ $crumb['name'] }}
+                            {{ $crumbName }}
                         </button>
                     @endif
                 @endforeach
@@ -64,7 +65,7 @@
             @if($showSidebar)
             {{-- Sidebar --}}
             <aside class="w-56 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-3 overflow-y-auto">
-                <h2 class="px-2 text-sm font-semibold text-gray-900 dark:text-white mb-3">Folders</h2>
+                <h2 class="px-2 text-sm font-semibold text-gray-900 dark:text-white mb-3">{{ $sidebarHeading }}</h2>
 
                 {{-- Root Folder --}}
                 <nav class="space-y-0.5">
@@ -73,7 +74,7 @@
                         class="flex w-full items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 {{ $currentPath === null ? 'font-medium' : '' }}"
                     >
                         <x-heroicon-o-folder class="w-4 h-4 text-primary-500 shrink-0" />
-                        <span class="truncate text-sm text-gray-700 dark:text-gray-300">Root</span>
+                        <span class="truncate text-sm text-gray-700 dark:text-gray-300">{{ $sidebarRootLabel }}</span>
                     </button>
 
                     {{-- Folder Tree --}}

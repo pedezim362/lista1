@@ -21,9 +21,12 @@ class EmbeddedFileSystem extends EmbeddedFileManager
         string $defaultViewMode = 'grid',
         ?string $disk = null,
         ?string $target = null,
-        ?string $initialFolder = null
+        ?string $initialFolder = null,
+        string $sidebarRootLabel = 'Root',
+        string $sidebarHeading = 'Folders',
+        string $breadcrumbsRootLabel = 'Root'
     ): void {
-        parent::mount($height, $showHeader, $showSidebar, $defaultViewMode, $disk, $target, $initialFolder);
+        parent::mount($height, $showHeader, $showSidebar, $defaultViewMode, $disk, $target, $initialFolder, $sidebarRootLabel, $sidebarHeading, $breadcrumbsRootLabel);
     }
 
     protected function getAdapter(): FileManagerAdapterInterface

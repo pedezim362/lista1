@@ -33,6 +33,9 @@ class EmbeddedFileManager extends Component
     public ?string $disk = null;
     public ?string $target = null;
     public ?string $initialFolder = null;
+    public string $sidebarRootLabel = 'Root';
+    public string $sidebarHeading = 'Folders';
+    public string $breadcrumbsRootLabel = 'Root';
 
     // State properties
     public ?string $currentPath = null;
@@ -62,7 +65,10 @@ class EmbeddedFileManager extends Component
         string $defaultViewMode = 'grid',
         ?string $disk = null,
         ?string $target = null,
-        ?string $initialFolder = null
+        ?string $initialFolder = null,
+        string $sidebarRootLabel = 'Root',
+        string $sidebarHeading = 'Folders',
+        string $breadcrumbsRootLabel = 'Root'
     ): void {
         $this->height = $height;
         $this->showHeader = $showHeader;
@@ -73,6 +79,9 @@ class EmbeddedFileManager extends Component
         $this->target = $target;
         $this->initialFolder = $initialFolder;
         $this->currentPath = $initialFolder;
+        $this->sidebarRootLabel = $sidebarRootLabel;
+        $this->sidebarHeading = $sidebarHeading;
+        $this->breadcrumbsRootLabel = $breadcrumbsRootLabel;
         $this->expandedFolders = ['root'];
 
         // Expand parent folders if initialFolder is set

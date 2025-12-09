@@ -28,6 +28,12 @@ class FileManagerEmbed extends Livewire
 
     protected ?string $initialFolder = null;
 
+    protected string|Closure $sidebarRootLabel = 'Root';
+
+    protected string|Closure $sidebarHeading = 'Folders';
+
+    protected string|Closure $breadcrumbsRootLabel = 'Root';
+
     public static function make(Closure|string $component = null, Closure|array $data = []): static
     {
         $static = app(static::class, [
@@ -56,6 +62,9 @@ class FileManagerEmbed extends Livewire
             'disk' => $this->getDisk(),
             'target' => $this->getTarget(),
             'initialFolder' => $this->getInitialFolder(),
+            'sidebarRootLabel' => $this->getSidebarRootLabel(),
+            'sidebarHeading' => $this->getSidebarHeading(),
+            'breadcrumbsRootLabel' => $this->getBreadcrumbsRootLabel(),
         ];
     }
 
@@ -208,5 +217,77 @@ class FileManagerEmbed extends Livewire
     public function compact(): static
     {
         return $this->hideHeader()->hideSidebar();
+    }
+
+    /**
+     * Set the sidebar root label.
+     */
+    public function sidebarRootLabel(string|Closure $label): static
+    {
+        $this->sidebarRootLabel = $label;
+
+        return $this;
+    }
+
+    /**
+     * Get the sidebar root label.
+     */
+    public function getSidebarRootLabel(): string
+    {
+        return $this->evaluate($this->sidebarRootLabel);
+    }
+
+    /**
+     * Set the sidebar heading.
+     */
+    public function sidebarHeading(string|Closure $heading): static
+    {
+        $this->sidebarHeading = $heading;
+
+        return $this;
+    }
+
+    /**
+     * Get the sidebar heading.
+     */
+    public function getSidebarHeading(): string
+    {
+        return $this->evaluate($this->sidebarHeading);
+    }
+
+    /**
+     * Configure sidebar with all options at once.
+     */
+    public function sidebar(bool|Closure $show = true, string|Closure|null $rootLabel = null, string|Closure|null $heading = null): static
+    {
+        $this->showSidebar($show);
+
+        if ($rootLabel !== null) {
+            $this->sidebarRootLabel($rootLabel);
+        }
+
+        if ($heading !== null) {
+            $this->sidebarHeading($heading);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Set the breadcrumbs root label.
+     */
+    public function breadcrumbsRootLabel(string|Closure $label): static
+    {
+        $this->breadcrumbsRootLabel = $label;
+
+        return $this;
+    }
+
+    /**
+     * Get the breadcrumbs root label.
+     */
+    public function getBreadcrumbsRootLabel(): string
+    {
+        return $this->evaluate($this->breadcrumbsRootLabel);
     }
 }
