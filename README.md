@@ -1,8 +1,8 @@
 # MWGuerra FileManager
 
-A file manager package for Laravel and Filament v4 with dual operating modes, S3/MinIO support, file previews, and drag-and-drop uploads.
+A full-featured file manager package for Laravel and Filament v4 with dual operating modes, S3/MinIO support, file previews, and drag-and-drop uploads.
 
-![File System Storage Mode](./docs/images/File%20System%20%28Storage%20Mode%29%20-%20Minio%20Disk.png)
+![File Manager - List View](https://raw.githubusercontent.com/mwguerra/filemanager/main/docs/images/File%20Manager%20-%20List%20View.png)
 
 ## Features
 
@@ -29,45 +29,23 @@ A file manager package for Laravel and Filament v4 with dual operating modes, S3
 composer require mwguerra/filemanager
 ```
 
-### Quick Install (Recommended)
+Publish configuration:
 
-Run the install command to set up everything automatically:
+```bash
+php artisan vendor:publish --tag=filemanager-config
+```
+
+Run migrations:
+
+```bash
+php artisan migrate
+```
+
+Run the install command:
 
 ```bash
 php artisan filemanager:install
 ```
-
-This command will:
-1. Publish Filament assets (including pre-compiled FileManager CSS)
-2. Publish the configuration file
-3. Run database migrations
-
-### Manual Installation
-
-If you prefer manual control, you can run each step separately:
-
-```bash
-# Publish configuration
-php artisan vendor:publish --tag=filemanager-config
-
-# Run migrations
-php artisan migrate
-
-# Publish Filament assets (includes FileManager CSS)
-php artisan filament:assets
-```
-
-### Importing Existing Files
-
-If you have existing files in your filesystem that you want to import into the File Manager:
-
-```bash
-php artisan filemanager:rebuild
-```
-
-This will scan your storage and create database records for all existing files.
-
-### Register the Plugin
 
 Register the plugin in your Panel Provider:
 
@@ -83,9 +61,9 @@ public function panel(Panel $panel): Panel
 }
 ```
 
-### Configuring Pages
+## Plugin Configuration
 
-By default, the plugin registers all pages based on config settings. You can customize which pages to register:
+Register all components or select only the ones you need:
 
 ```php
 use MWGuerra\FileManager\FileManagerPlugin;
@@ -94,45 +72,99 @@ use MWGuerra\FileManager\Filament\Pages\FileSystem;
 use MWGuerra\FileManager\Filament\Pages\SchemaExample;
 use MWGuerra\FileManager\Filament\Resources\FileSystemItemResource;
 
-// Register all enabled pages (default)
+// Register all enabled components (default)
 FileManagerPlugin::make()
 
-// Register only specific pages
+// Register only specific components
 FileManagerPlugin::make([
-    FileManager::class,      // Database mode - full CRUD
-    FileSystem::class,       // Storage mode - read-only browser
-])
-
-// Register only the File Manager page
-FileManagerPlugin::make([
-    FileManager::class,
-])
-
-// Register only the File System page
-FileManagerPlugin::make([
-    FileSystem::class,
-])
-
-// Include the Schema Example page (for testing embeds)
-FileManagerPlugin::make([
-    FileManager::class,
-    FileSystem::class,
-    SchemaExample::class,
+    FileManager::class,              // Database mode - full CRUD file manager
+    FileSystem::class,               // Storage mode - read-only file browser
+    FileSystemItemResource::class,   // Resource for direct database table editing
+    SchemaExample::class,            // Demo page showing embed components usage
 ])
 
 // Using the fluent API
 FileManagerPlugin::make()
     ->only([
         FileManager::class,
-        FileSystemItemResource::class,
+        FileSystem::class,
     ])
 ```
 
-### Fluent Configuration API
+| Component | URL | Description |
+|-----------|-----|-------------|
+| `FileManager::class` | `/admin/file-manager` | Database mode with full CRUD operations |
+| `FileSystem::class` | `/admin/file-system` | Storage mode for browsing files (read-only) |
+| `FileSystemItemResource::class` | `/admin/file-system-items` | Direct database table management |
+| `SchemaExample::class` | `/admin/schema-example` | Demo page for embedding components in forms |
+
+## Quick Start
+
+After installation, access the file manager at:
+
+| Page | URL | Description |
+|------|-----|-------------|
+| File Manager | `/admin/file-manager` | Database mode with full CRUD operations |
+| File System | `/admin/file-system` | Storage mode for browsing files (read-only) |
+
+### File Manager (Database Mode)
+
+Full CRUD file management with metadata tracking, thumbnails, and folder organization.
+
+![File Manager - Database Mode](https://raw.githubusercontent.com/mwguerra/filemanager/main/docs/images/File%20Manager%20Page%20-%20List%20View.png)
+
+### File System (Storage Mode: Read-only)
+
+Read-only file browser for direct filesystem access with S3/MinIO support.
+
+![File System - Storage Mode](https://raw.githubusercontent.com/mwguerra/filemanager/main/docs/images/File%20System%20Page%20%28Storage%20Mode%29.png)
+
+### FileSystemItems Resource
+
+Direct database table management for file system items with Filament's standard resource interface.
+
+![FileSystemItems Resource Page](https://raw.githubusercontent.com/mwguerra/filemanager/main/docs/images/FileSystemItems%20Resource%20Page.png)
+
+## File Previews
+
+Built-in viewers for common file types with modal preview support.
+
+### Image Preview
+
+![Image Preview](https://raw.githubusercontent.com/mwguerra/filemanager/main/docs/images/Schema%20Example%20Page%20-%20Image%20Preview.png)
+
+### Video Preview
+
+![Video Preview](https://raw.githubusercontent.com/mwguerra/filemanager/main/docs/images/Schema%20Example%20Page%20-%20Video%20Preview.png)
+
+## Embedding in Forms
+
+The package provides two embeddable schema components that can be added to any Filament form. Use `FileManagerEmbed` for full CRUD operations with database-tracked files, or `FileSystemEmbed` for a read-only storage browser. Both components are fully customizable with options for height, disk, target directory, and initial folder.
+
+![File System Embed - Storage Mode](https://raw.githubusercontent.com/mwguerra/filemanager/main/docs/images/File%20System%20%28Storage%20Mode%29%20-%20Minio%20Disk.png)
+
+```php
+use MWGuerra\FileManager\Schemas\Components\FileManagerEmbed;
+use MWGuerra\FileManager\Schemas\Components\FileSystemEmbed;
+
+// Database mode (full CRUD)
+FileManagerEmbed::make()
+    ->height('400px')
+    ->disk('s3')
+    ->target('uploads'),
+
+// Storage mode (read-only browser)
+FileSystemEmbed::make()
+    ->height('400px')
+    ->disk('public')
+    ->target('media'),
+```
+
+## Fluent Configuration API
 
 The plugin provides a fluent API for configuring all aspects of the file manager directly in your Panel Provider. This approach is preferred over config file settings as it keeps your panel configuration in one place.
 
-#### Panel Sidebar
+### Panel Sidebar
 
 Add a folder tree sidebar to your Filament panel navigation:
 
@@ -159,7 +191,7 @@ FileManagerPlugin::make()
     ->withoutPanelSidebar()
 ```
 
-#### File Manager Page Configuration
+### File Manager Page Configuration
 
 Configure the database mode File Manager page:
 
@@ -183,7 +215,7 @@ FileManagerPlugin::make()
     )
 ```
 
-#### File System Page Configuration
+### File System Page Configuration
 
 Configure the storage mode File System page (read-only):
 
@@ -207,7 +239,7 @@ FileManagerPlugin::make()
     )
 ```
 
-#### Schema Example Page
+### Schema Example Page
 
 Enable/disable the demo page for testing embedded components:
 
@@ -217,7 +249,7 @@ FileManagerPlugin::make()
     ->withoutSchemaExample()  // Disable
 ```
 
-#### Complete Configuration Example
+### Complete Configuration Example
 
 ```php
 use MWGuerra\FileManager\FileManagerPlugin;
@@ -263,7 +295,7 @@ public function panel(Panel $panel): Panel
 }
 ```
 
-#### Configuration Precedence
+### Configuration Precedence
 
 Configuration values follow this precedence (highest to lowest):
 
@@ -277,41 +309,6 @@ For sidebar labels, page-specific settings fall back to panel sidebar settings:
 FileManagerPlugin::make()
     ->panelSidebarRootLabel('Root')  // Default for all sidebars
     ->fileManagerSidebarRootLabel('Files Root')  // Override for File Manager only
-```
-
-| Page Class | URL | Description |
-|------------|-----|-------------|
-| `FileManager::class` | `/admin/file-manager` | Database mode with full CRUD |
-| `FileSystem::class` | `/admin/file-system` | Storage mode (read-only) |
-| `SchemaExample::class` | `/admin/schema-example` | Demo page for embedded components |
-| `FileSystemItemResource::class` | `/admin/file-system-items` | Filament resource for files |
-
-## Quick Start
-
-After installation, access the file manager at:
-
-| Page | URL | Description |
-|------|-----|-------------|
-| File Manager | `/admin/file-manager` | Database mode with full CRUD operations |
-| File System | `/admin/file-system` | Storage mode for browsing files (read-only) |
-
-## Embedding in Forms
-
-```php
-use MWGuerra\FileManager\Schemas\Components\FileManagerEmbed;
-use MWGuerra\FileManager\Schemas\Components\FileSystemEmbed;
-
-// Database mode (full CRUD)
-FileManagerEmbed::make()
-    ->height('400px')
-    ->disk('s3')
-    ->target('uploads'),
-
-// Storage mode (read-only browser)
-FileSystemEmbed::make()
-    ->height('400px')
-    ->disk('public')
-    ->target('media'),
 ```
 
 ## Artisan Commands
@@ -412,48 +409,15 @@ php artisan filemanager:upload <path> [options]
 | `filemanager-stubs` | Config stubs (filesystems, env) |
 | `filemanager-upload-config` | Upload configuration |
 
-## Development
+## Issues and Contributing
 
-### Composer Scripts
+Found a bug or have a feature request? Please open an issue on [GitHub Issues](https://github.com/mwguerra/filemanager/issues).
 
-The package includes several composer scripts for development:
-
-```bash
-# Run tests
-composer test
-
-# Run tests in parallel
-composer test:parallel
-
-# Run tests with coverage
-composer test:coverage
-
-# Build CSS assets
-composer build
-
-# Create a new release (builds, commits, tags, and pushes)
-composer release
-```
-
-### Release Process
-
-To create a new release, run:
-
-```bash
-composer release
-```
-
-This interactive script will:
-1. Build CSS assets (`npm run build`)
-2. Show the last git tag
-3. Prompt for a new version (validates semver format and ensures it's higher)
-4. Commit any uncommitted changes
-5. Push to remote
-6. Create and push the new git tag
+We welcome contributions! Please read our [Contributing Guide](https://github.com/mwguerra/filemanager/blob/main/CONTRIBUTING.md) before submitting a pull request.
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) for details.
+File Manager is open-sourced software licensed under the [MIT License](https://github.com/mwguerra/filemanager/blob/main/LICENSE).
 
 ## Author
 
